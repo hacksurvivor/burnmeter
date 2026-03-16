@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .widget {
+    width: 360px;
+    background: #1a1917;
+    border-radius: 14px;
+    border: 1px solid rgba(250,249,245,0.08);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    padding: 24px;
+    color: #faf9f5;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  .hdr {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .hdr h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #d97757;
+    letter-spacing: 0.18em;
+    display: inline;
+  }
+  .hdr .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    background: #d97757;
+    color: #1a1917;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    position: relative;
+    top: -2px;
+  }
+  .hdr .tz {
+    font-size: 12px;
+    color: #8a857c;
+    margin-top: 4px;
+  }
+
+  /* ── Promo ── */
+  .promo {
+    background: #222120;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    border-left: 3px solid #92ad63;
+  }
+  .promo.peak {
+    border-left-color: #d97757;
+  }
+  .promo .status {
+    font-size: 17px;
+    font-weight: 700;
+    color: #a8c96e;
+    margin-bottom: 2px;
+  }
+  .promo.peak .status {
+    color: #d97757;
+  }
+  .promo .countdown {
+    font-size: 13px;
+    color: #b5b0a6;
+    margin-bottom: 8px;
+  }
+  .promo .next {
+    font-size: 11px;
+    color: #6e6a62;
+  }
+
+  /* ── Timeline ── */
+  .tl {
+    margin-top: 14px;
+  }
+  .tl-bar {
+    height: 5px;
+    background: rgba(250,249,245,0.06);
+    border-radius: 3px;
+    position: relative;
+  }
+  .tl-seg {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 3px;
+  }
+  .tl-peak { background: rgba(217,119,87,0.45); }
+  .tl-off { background: rgba(146,173,99,0.2); }
+  .tl-now {
+    position: absolute;
+    top: -4px;
+    width: 3px;
+    height: 13px;
+    background: #faf9f5;
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(250,249,245,0.5);
+    z-index: 2;
+  }
+  .tl-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: #5a5650;
+    margin-top: 4px;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: rgba(250,249,245,0.06);
+    margin: 18px 0;
+  }
+
+  /* ── Usage ── */
+  .usage-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6e6a62;
+    margin-bottom: 10px;
+  }
+  .usage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .usage-card {
+    background: #222120;
+    border-radius: 8px;
+    padding: 14px;
+    border: 1px solid rgba(250,249,245,0.04);
+  }
+  .usage-card .label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6e6a62;
+    margin-bottom: 6px;
+  }
+  .usage-card .val {
+    font-size: 24px;
+    font-weight: 700;
+    color: #faf9f5;
+    line-height: 1;
+  }
+  .usage-card .unit {
+    font-size: 11px;
+    font-weight: 400;
+    color: #8a857c;
+  }
+  .usage-card .sub {
+    font-size: 10px;
+    color: #5a5650;
+    margin-top: 3px;
+  }
+
+  /* ── Footer ── */
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #5a5650;
+    margin-top: 18px;
+  }
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="hdr">
+    <h1>CLAUDE</h1><span class="tag">2x</span>
+    <div class="tz">Asia/Bangkok · UTC+7</div>
+  </div>
+
+  <div class="promo">
+    <div class="status">OFF-PEAK 2x</div>
+    <div class="countdown">6h 14m left</div>
+    <div class="next">Next peak: 19:00 – 01:00 (your time)</div>
+    <div class="tl">
+      <div class="tl-bar">
+        <div class="tl-off" style="left:4.2%;width:75%"></div>
+        <div class="tl-peak" style="left:79.2%;width:20.8%"></div>
+        <div class="tl-peak" style="left:0;width:4.2%"></div>
+        <div class="tl-now" style="left:53%"></div>
+      </div>
+      <div class="tl-labels">
+        <span>00</span>
+        <span>19</span>
+        <span>01</span>
+        <span>24</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="usage-label">Usage</div>
+  <div class="usage-grid">
+    <div class="usage-card">
+      <div class="label">5h window</div>
+      <div><span class="val">175.4</span><span class="unit">M tok</span></div>
+      <div class="sub">1,068 msgs</div>
+    </div>
+    <div class="usage-card">
+      <div class="label">7d window</div>
+      <div><span class="val">2.0</span><span class="unit">B tok</span></div>
+      <div class="sub">10,815 msgs</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Updated 12:45:19</span>
+    <span>Ends Mar 27</span>
+  </div>
+</div>
+
+</body>
+</html>

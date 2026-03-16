@@ -5,12 +5,12 @@ interface HeaderProps {
 
 export function Header({ timezone, utcOffset }: HeaderProps) {
   return (
-    <div className="header">
-      <div className="header__row">
-        <span className="header__name">CLAUDE</span>
-        <span className="header__tag">2x</span>
+    <div className="hdr">
+      <div className="hdr__row">
+        <span className="hdr__name">CLAUDE</span>
+        <span className="hdr__tag">2x</span>
       </div>
-      <div className="header__tz">
+      <div className="hdr__tz">
         <b>{timezone}</b> · {utcOffset}
       </div>
     </div>

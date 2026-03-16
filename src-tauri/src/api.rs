@@ -4,11 +4,15 @@ use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UsageResponse {
-    pub session_tokens: u64,
-    pub weekly_tokens: u64,
+    pub session_input_tokens: u64,
+    pub session_output_tokens: u64,
+    pub weekly_input_tokens: u64,
+    pub weekly_output_tokens: u64,
     pub plan: Option<String>,
     pub message_count_5h: u32,
     pub message_count_7d: u32,
+    pub session_reset_seconds: u64,
+    pub weekly_reset_seconds: u64,
 }
 
 /// Get the Claude projects directory
@@ -36,10 +40,13 @@ fn parse_local_usage() -> Result<UsageResponse, String> {
     let five_hours_ago = now.saturating_sub(5 * 60 * 60 * 1000);
     let seven_days_ago = now.saturating_sub(7 * 24 * 60 * 60 * 1000);
 
-    let mut session_tokens: u64 = 0;
-    let mut weekly_tokens: u64 = 0;
+    let mut si: u64 = 0; // session input
+    let mut so: u64 = 0; // session output
+    let mut wi: u64 = 0; // weekly input
+    let mut wo: u64 = 0; // weekly output
     let mut message_count_5h: u32 = 0;
     let mut message_count_7d: u32 = 0;
+    let mut earliest_session_ts: u64 = now; // track when session window started
 
     // Walk all project directories
     if let Ok(entries) = fs::read_dir(&projects_dir) {
@@ -73,10 +80,11 @@ fn parse_local_usage() -> Result<UsageResponse, String> {
                                 line,
                                 five_hours_ago,
                                 seven_days_ago,
-                                &mut session_tokens,
-                                &mut weekly_tokens,
+                                &mut si, &mut so,
+                                &mut wi, &mut wo,
                                 &mut message_count_5h,
                                 &mut message_count_7d,
+                                &mut earliest_session_ts,
                             );
                         }
                     }
@@ -85,12 +93,32 @@ fn parse_local_usage() -> Result<UsageResponse, String> {
         }
     }
 
+    // Session resets 5h after the earliest message in the window
+    // Weekly resets 7 days after the window start
+    let session_reset_seconds = if message_count_5h > 0 {
+        let reset_at = five_hours_ago + (5 * 60 * 60 * 1000);
+        reset_at.saturating_sub(now) / 1000
+    } else {
+        0
+    };
+
+    let weekly_reset_seconds = if message_count_7d > 0 {
+        let reset_at = seven_days_ago + (7 * 24 * 60 * 60 * 1000);
+        reset_at.saturating_sub(now) / 1000
+    } else {
+        0
+    };
+
     Ok(UsageResponse {
-        session_tokens,
-        weekly_tokens,
+        session_input_tokens: si,
+        session_output_tokens: so,
+        weekly_input_tokens: wi,
+        weekly_output_tokens: wo,
         plan: None,
         message_count_5h,
         message_count_7d,
+        session_reset_seconds,
+        weekly_reset_seconds,
     })
 }
 
@@ -98,10 +126,11 @@ fn parse_usage_line(
     line: &str,
     five_hours_ago: u64,
     seven_days_ago: u64,
-    session_tokens: &mut u64,
-    weekly_tokens: &mut u64,
+    si: &mut u64, so: &mut u64,
+    wi: &mut u64, wo: &mut u64,
     message_count_5h: &mut u32,
     message_count_7d: &mut u32,
+    earliest_session_ts: &mut u64,
 ) {
     let json: serde_json::Value = match serde_json::from_str(line) {
         Ok(v) => v,
@@ -147,16 +176,21 @@ fn parse_usage_line(
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
 
-    let total = input + output + cache_create + cache_read;
+    let total_input = input + cache_create + cache_read;
 
     // Weekly window
-    *weekly_tokens += total;
+    *wi += total_input;
+    *wo += output;
     *message_count_7d += 1;
 
     // Session window (5 hours)
     if timestamp >= five_hours_ago {
-        *session_tokens += total;
+        *si += total_input;
+        *so += output;
         *message_count_5h += 1;
+        if timestamp < *earliest_session_ts {
+            *earliest_session_ts = timestamp;
+        }
     }
 }
 

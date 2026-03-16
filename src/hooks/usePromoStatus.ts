@@ -2,15 +2,9 @@ import { useState, useEffect } from "react";
 import { isPeak, isPromoActive, getNextTransition, getLocalPeakHours } from "../lib/promo";
 import { formatTimeRange } from "../lib/format";
 import type { PromoStatus } from "../types/usage";
+import { PROMO_TZ } from "../lib/constants";
 
-export function usePromoStatus(): {
-  promo: PromoStatus;
-  timezone: string;
-  utcOffset: string;
-  peakStartLocal: number;
-  peakEndLocal: number;
-  currentHour: number;
-} {
+export function usePromoStatus() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -20,13 +14,20 @@ export function usePromoStatus(): {
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  // Extract UTC offset string
   const offsetParts = now.toLocaleString("en-US", {
     timeZone: timezone,
     timeZoneName: "shortOffset",
   });
   const gmtMatch = offsetParts.match(/GMT([+-]\d+(?::\d+)?)/);
   const utcOffset = gmtMatch ? `UTC${gmtMatch[1]}` : "UTC";
+
+  // Check if it's a weekend in PT
+  const ptDayFmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: PROMO_TZ,
+    weekday: "short",
+  });
+  const ptDay = ptDayFmt.format(now);
+  const isWeekend = ptDay === "Sat" || ptDay === "Sun";
 
   const promoActive = isPromoActive(now);
   const peak = promoActive ? isPeak(now) : false;
@@ -35,17 +36,32 @@ export function usePromoStatus(): {
 
   const { startHour, endHour } = getLocalPeakHours(timezone, now);
 
+  let nextLabel: string;
+  if (isWeekend) {
+    nextLabel = "Weekend — all day 2x bonus tokens";
+  } else if (peak) {
+    nextLabel = `Off-peak at ${formatTimeRange(endHour, endHour).split(" - ")[0]} (your time)`;
+  } else {
+    nextLabel = `Next peak: ${formatTimeRange(startHour, endHour)} (your time)`;
+  }
+
   const promo: PromoStatus = {
     isPromoActive: promoActive,
     isPeak: peak,
-    label: peak ? "PEAK (1×)" : "OFF-PEAK (2×)",
+    label: peak ? "PEAK (1x)" : "OFF-PEAK (2x)",
     timeLeftSeconds,
-    nextTransitionLabel: peak
-      ? `Off-peak starts at ${formatTimeRange(endHour, endHour).split(" - ")[0]} (your time)`
-      : `Next peak: ${formatTimeRange(startHour, endHour)} (your time)`,
+    nextTransitionLabel: nextLabel,
   };
 
   const currentHour = now.getHours() + now.getMinutes() / 60;
 
-  return { promo, timezone, utcOffset, peakStartLocal: startHour, peakEndLocal: endHour, currentHour };
+  return {
+    promo,
+    timezone,
+    utcOffset,
+    peakStartLocal: startHour,
+    peakEndLocal: endHour,
+    currentHour,
+    isWeekend,
+  };
 }

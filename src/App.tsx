@@ -10,7 +10,7 @@ import type { TrayStatus } from "./lib/constants";
 
 export default function App() {
   const { usage, error, lastUpdated, isStale } = useUsageData();
-  const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour } =
+  const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour, isWeekend } =
     usePromoStatus();
 
   useEffect(() => {
@@ -29,7 +29,9 @@ export default function App() {
         peakStartLocal={peakStartLocal}
         peakEndLocal={peakEndLocal}
         currentHour={currentHour}
+        isWeekend={isWeekend}
       />
+      <div className="divider" />
       <UsageLimits usage={usage} isStale={isStale} />
       <QuickInfo
         plan={usage?.plan ?? null}
