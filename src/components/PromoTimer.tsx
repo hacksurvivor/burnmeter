@@ -10,7 +10,8 @@ interface Props {
 
 export function PromoTimer({ promo, peakStartLocal, peakEndLocal, currentHour, isWeekend }: Props) {
   if (!promo.isPromoActive) return null;
-  const { isPeak, timeLeftSeconds, nextTransitionLabel } = promo;
+  const { isPeak, timeLeftSeconds } = promo;
+  const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
     <div className={`promo ${isPeak ? "promo--peak" : ""}`}>
@@ -20,11 +21,26 @@ export function PromoTimer({ promo, peakStartLocal, peakEndLocal, currentHour, i
         </span>
         <span className="promo__countdown">{fmt(timeLeftSeconds)}</span>
       </div>
-      <div className="promo__sub">
-        {isWeekend ? "Weekend — all day bonus" : nextTransitionLabel}
-      </div>
 
-      {/* Timeline only on weekdays — weekends are all off-peak, no bar needed */}
+      {isWeekend ? (
+        <div className="promo__sub">Weekend — all day free bonus tokens</div>
+      ) : (
+        <div className="promo__schedule">
+          <div className="promo__schedule-row promo__schedule-row--free">
+            <span className="promo__schedule-label">FREE 2x</span>
+            <span className="promo__schedule-hours">
+              {pad(peakEndLocal)}:00 – {pad(peakStartLocal)}:00
+            </span>
+          </div>
+          <div className="promo__schedule-row promo__schedule-row--paid">
+            <span className="promo__schedule-label">YOUR PLAN</span>
+            <span className="promo__schedule-hours">
+              {pad(peakStartLocal)}:00 – {pad(peakEndLocal)}:00
+            </span>
+          </div>
+        </div>
+      )}
+
       {!isWeekend && (
         <TL start={peakStartLocal} end={peakEndLocal} now={currentHour} />
       )}
@@ -34,7 +50,6 @@ export function PromoTimer({ promo, peakStartLocal, peakEndLocal, currentHour, i
 
 function TL({ start, end, now }: { start: number; end: number; now: number }) {
   const p = (h: number) => `${(h / 24) * 100}%`;
-  const pad = (n: number) => String(n).padStart(2, "0");
   const wraps = start > end;
 
   return (
@@ -54,12 +69,6 @@ function TL({ start, end, now }: { start: number; end: number; now: number }) {
           </>
         )}
         <div className="tl__now" style={{ left: p(now) }} />
-      </div>
-      <div className="tl__labels">
-        <span>00</span>
-        <span>{pad(start)}</span>
-        <span>{pad(end)}</span>
-        <span>24</span>
       </div>
     </div>
   );
