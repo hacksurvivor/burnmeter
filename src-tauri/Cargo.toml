@@ -1,0 +1,21 @@
+[package]
+name = "claude-x2-tracker"
+version = "0.1.0"
+description = "Claude X2 Tracker - macOS menu bar app for Claude usage tracking"
+authors = ["Claude X2 Contributors"]
+edition = "2021"
+
+[lib]
+name = "claude_x2_tracker_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+tokio = { version = "1", features = ["full"] }
