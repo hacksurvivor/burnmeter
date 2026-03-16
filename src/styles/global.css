@@ -39,7 +39,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  gap: 16px;
+  gap: 12px;
   overflow: hidden;
 }
 
@@ -148,10 +148,15 @@ body {
   box-shadow: 0 0 6px rgba(250,249,245,0.5);
   z-index: 2;
 }
-.tl__labels {
-  display: flex; justify-content: space-between;
-  margin-top: 4px; font-size: 9px; color: var(--faint);
+.tl__legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 9px;
+  color: var(--faint);
 }
+.tl__legend-free { color: var(--green); }
+.tl__legend-paid { color: var(--accent); }
 
 /* ── Divider ── */
 .divider {
