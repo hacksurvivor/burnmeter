@@ -16,88 +16,72 @@ export function PromoTimer({
   if (!promo.isPromoActive) return null;
 
   const { isPeak, timeLeftSeconds, nextTransitionLabel } = promo;
-  const cardClass = isPeak ? "status-card--peak" : "status-card--offpeak";
-  const statusClass = isPeak ? "status-card__status--peak" : "status-card__status--offpeak";
 
   return (
-    <div className={`status-card ${cardClass}`}>
-      <div className="status-card__header">
-        <span className="status-card__label">Promo Status</span>
-      </div>
-
-      <div className="status-card__hero">
-        <span className={`status-card__status ${statusClass}`}>
-          {isPeak ? "PEAK" : "OFF-PEAK 2×"}
+    <div className={`promo ${isPeak ? "promo--peak" : "promo--offpeak"}`}>
+      <div className="promo__top">
+        <span className={`promo__status ${isPeak ? "promo__status--peak" : "promo__status--offpeak"}`}>
+          {isPeak ? "PEAK 1x" : "OFF-PEAK 2x"}
         </span>
-        <span className="status-card__countdown">
-          {formatCountdown(timeLeftSeconds)}
-        </span>
+        <span className="promo__time">{fmt(timeLeftSeconds)}</span>
       </div>
-
-      <div className="status-card__next">{nextTransitionLabel}</div>
-
-      <Timeline
-        peakStart={peakStartLocal}
-        peakEnd={peakEndLocal}
-        currentHour={currentHour}
-      />
+      <div className="promo__next">{nextTransitionLabel}</div>
+      <Timeline peakStart={peakStartLocal} peakEnd={peakEndLocal} currentHour={currentHour} />
     </div>
   );
 }
 
-function Timeline({
-  peakStart,
-  peakEnd,
-  currentHour,
-}: {
-  peakStart: number;
-  peakEnd: number;
-  currentHour: number;
-}) {
-  const toPercent = (h: number) => `${(h / 24) * 100}%`;
-  const nowPos = toPercent(currentHour);
-
-  // Handle peak hours that may wrap around midnight
-  const wraps = peakStart > peakEnd;
-
+function Timeline({ peakStart, peakEnd, currentHour }: { peakStart: number; peakEnd: number; currentHour: number }) {
+  const pct = (h: number) => `${(h / 24) * 100}%`;
   const pad = (n: number) => n.toString().padStart(2, "0");
+  const wraps = peakStart > peakEnd;
 
   return (
     <div className="timeline">
       <div className="timeline__track">
+        {/* Off-peak segments */}
+        {wraps ? (
+          <div className="timeline__segment timeline__segment--offpeak"
+            style={{ left: pct(peakEnd), width: pct(peakStart - peakEnd) }} />
+        ) : (
+          <>
+            {peakStart > 0 && (
+              <div className="timeline__segment timeline__segment--offpeak"
+                style={{ left: "0", width: pct(peakStart) }} />
+            )}
+            {peakEnd < 24 && (
+              <div className="timeline__segment timeline__segment--offpeak"
+                style={{ left: pct(peakEnd), width: pct(24 - peakEnd) }} />
+            )}
+          </>
+        )}
+        {/* Peak segments */}
         {wraps ? (
           <>
-            <div
-              className="timeline__peak"
-              style={{ left: toPercent(peakStart), right: "0" }}
-            />
-            <div
-              className="timeline__peak"
-              style={{ left: "0", width: toPercent(peakEnd) }}
-            />
+            <div className="timeline__segment timeline__segment--peak"
+              style={{ left: pct(peakStart), right: "0" }} />
+            <div className="timeline__segment timeline__segment--peak"
+              style={{ left: "0", width: pct(peakEnd) }} />
           </>
         ) : (
-          <div
-            className="timeline__peak"
-            style={{ left: toPercent(peakStart), width: toPercent(peakEnd - peakStart) }}
-          />
+          <div className="timeline__segment timeline__segment--peak"
+            style={{ left: pct(peakStart), width: pct(peakEnd - peakStart) }} />
         )}
-        <div className="timeline__now" style={{ left: nowPos }} />
+        <div className="timeline__now" style={{ left: pct(currentHour) }} />
       </div>
       <div className="timeline__labels">
-        <span>00:00</span>
-        <span>{pad(peakStart)}:00</span>
-        <span>{pad(peakEnd)}:00</span>
-        <span>24:00</span>
+        <span>00</span>
+        <span>{pad(peakStart)}</span>
+        <span>{pad(peakEnd)}</span>
+        <span>24</span>
       </div>
     </div>
   );
 }
 
-function formatCountdown(seconds: number): string {
-  if (seconds < 60) return "< 1m";
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m left`;
-  return `${m}m left`;
+function fmt(s: number): string {
+  if (s < 60) return "< 1m";
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m left` : `${m}m left`;
 }

@@ -5,55 +5,42 @@ interface UsageLimitsProps {
   isStale: boolean;
 }
 
-function formatTokens(tokens: number): string {
-  if (tokens >= 1_000_000) return (tokens / 1_000_000).toFixed(1);
-  if (tokens >= 1_000) return (tokens / 1_000).toFixed(1);
-  return `${tokens}`;
+function fmtTokens(t: number): string {
+  if (t >= 1_000_000) return (t / 1_000_000).toFixed(1);
+  if (t >= 1_000) return (t / 1_000).toFixed(1);
+  return `${t}`;
 }
 
-function tokenUnit(tokens: number): string {
-  if (tokens >= 1_000_000) return "M";
-  if (tokens >= 1_000) return "K";
+function unit(t: number): string {
+  if (t >= 1_000_000) return "M";
+  if (t >= 1_000) return "K";
   return "";
 }
 
 export function UsageLimits({ usage, isStale }: UsageLimitsProps) {
-  return (
-    <div className={`usage ${isStale ? "stale" : ""}`}>
-      <div className="usage__label">Usage</div>
+  if (!usage) return null;
 
-      {!usage ? (
-        <div style={{ color: "var(--text-tertiary)", fontSize: "var(--font-size-xs)" }}>
-          Scanning logs...
-        </div>
-      ) : (
-        <div className="usage__grid">
-          <div className="usage__item">
-            <div className="usage__item-label">5h window</div>
-            <div>
-              <span className="usage__item-value">
-                {formatTokens(usage.session_tokens)}
-              </span>
-              <span className="usage__item-unit">{tokenUnit(usage.session_tokens)} tok</span>
-            </div>
-            <div className="usage__item-sub">
-              {usage.message_count_5h} messages
-            </div>
+  return (
+    <div className={isStale ? "stale" : ""}>
+      <div className="usage__label">Usage</div>
+      <div className="usage__grid">
+        <div className="usage__card">
+          <div className="usage__card-label">5h window</div>
+          <div>
+            <span className="usage__card-value">{fmtTokens(usage.session_tokens)}</span>
+            <span className="usage__card-unit">{unit(usage.session_tokens)} tok</span>
           </div>
-          <div className="usage__item">
-            <div className="usage__item-label">7d window</div>
-            <div>
-              <span className="usage__item-value">
-                {formatTokens(usage.weekly_tokens)}
-              </span>
-              <span className="usage__item-unit">{tokenUnit(usage.weekly_tokens)} tok</span>
-            </div>
-            <div className="usage__item-sub">
-              {usage.message_count_7d.toLocaleString()} messages
-            </div>
-          </div>
+          <div className="usage__card-sub">{usage.message_count_5h.toLocaleString()} msgs</div>
         </div>
-      )}
+        <div className="usage__card">
+          <div className="usage__card-label">7d window</div>
+          <div>
+            <span className="usage__card-value">{fmtTokens(usage.weekly_tokens)}</span>
+            <span className="usage__card-unit">{unit(usage.weekly_tokens)} tok</span>
+          </div>
+          <div className="usage__card-sub">{usage.message_count_7d.toLocaleString()} msgs</div>
+        </div>
+      </div>
     </div>
   );
 }

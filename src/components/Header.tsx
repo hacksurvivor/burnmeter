@@ -7,14 +7,15 @@ export function Header({ timezone, utcOffset }: HeaderProps) {
   return (
     <div className="header">
       <div className="header__brand">
-        <span className="header__logo-text">CLAUDE</span>
-        <span className="header__badge">2×</span>
+        <span className="header__title">CLAUDE</span>
+        <span className="header__badge">2x</span>
       </div>
-      <div className="header__location">
-        <span className="header__location-tz">{timezone}</span>
+      <div className="header__tz">
+        <span className="header__tz-name">{timezone}</span>
         {" · "}
-        {utcOffset}
+        <span>{utcOffset}</span>
       </div>
+      <div className="header__divider" />
     </div>
   );
 }

@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Claude X2 Tracker",
-        "width": 380,
-        "height": 480,
+        "width": 440,
+        "height": 540,
         "resizable": false,
         "decorations": false,
         "transparent": true,
