@@ -8,11 +8,24 @@
 
 macOS · Linux · Windows
 
+[**Download Latest Release**](https://github.com/hacksurvivor/burnmeter/releases/latest)
+
 ---
 
 <img src="docs/screenshots/app.png" width="600" alt="Burnmeter screenshot" />
 
 </div>
+
+## Download
+
+> **Requires:** [Claude Code](https://claude.ai/code) with `claude login` completed first.
+
+| Platform | Download |
+|----------|----------|
+| macOS (Apple Silicon) | [`.dmg`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
+| macOS (Intel) | [`.dmg`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
+| Windows | [`.msi`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
+| Linux | [`.deb` / `.AppImage`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
 
 ## Features
 
@@ -22,27 +35,6 @@ macOS · Linux · Windows
 - Weekend detection — all day 2x bonus on weekends
 - Menu bar shows `🟢 FREE 2x · 84%` or `🟠 PEAK · 84%` at a glance
 - Right-click to quit
-
-## Install
-
-**Prerequisites:** [Rust](https://rustup.rs/), [Node.js](https://nodejs.org/) 20+, [pnpm](https://pnpm.io/), [Claude Code](https://claude.ai/code) (`claude login` required)
-
-```bash
-# Install Rust if you don't have it
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-
-git clone https://github.com/hacksurvivor/burnmeter.git
-cd burnmeter
-pnpm install
-pnpm tauri build
-```
-
-| Platform | Output |
-|----------|--------|
-| macOS | `src-tauri/target/release/bundle/dmg/` |
-| Windows | `src-tauri/target/release/bundle/msi/` |
-| Linux | `src-tauri/target/release/bundle/deb/` |
 
 ## How it works
 
@@ -65,6 +57,20 @@ Eligible: Free, Pro, Max, Team plans.
 ## Tech stack
 
 [Tauri v2](https://tauri.app/) · Rust · React · TypeScript · Vite
+
+## Build from source
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+git clone https://github.com/hacksurvivor/burnmeter.git
+cd burnmeter
+pnpm install
+pnpm tauri build
+```
+
+Requires: Rust, Node.js 20+, pnpm.
 
 ## Contributing
 
