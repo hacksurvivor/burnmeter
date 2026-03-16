@@ -4,11 +4,12 @@ use tauri::{
 };
 
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
-    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/32x32.png"))
+    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
         .expect("failed to load tray icon");
 
     let tray = TrayIconBuilder::with_id("main")
         .icon(icon)
+        .icon_as_template(true)
         .title("×2")
         .tooltip("Claude X2 Tracker")
         .on_tray_icon_event(|tray_icon: &TrayIcon, event: TrayIconEvent| {
