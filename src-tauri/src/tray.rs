@@ -1,4 +1,5 @@
 use tauri::{
+    menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager,
 };
@@ -7,11 +8,22 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
     let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
         .expect("failed to load tray icon");
 
+    // Right-click menu with Quit
+    let quit = MenuItem::with_id(app, "quit", "Quit Claude X2", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&quit])?;
+
     let tray = TrayIconBuilder::with_id("main")
         .icon(icon)
         .icon_as_template(true)
         .title("×2")
         .tooltip("Claude X2 Tracker")
+        .menu(&menu)
+        .menu_on_left_click(false)
+        .on_menu_event(|app, event| {
+            if event.id.as_ref() == "quit" {
+                app.exit(0);
+            }
+        })
         .on_tray_icon_event(|tray_icon: &TrayIcon, event: TrayIconEvent| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
@@ -52,16 +64,18 @@ fn position_window_near_tray(window: &tauri::WebviewWindow) {
 }
 
 #[tauri::command]
-pub fn update_tray_status(app: AppHandle, status: String) -> Result<(), String> {
+pub fn update_tray_status(app: AppHandle, status: String, pct: Option<u32>) -> Result<(), String> {
+    let pct_str = pct.map(|p| format!(" {}%", p)).unwrap_or_default();
+
     let title = match status.as_str() {
-        "green" => "⚡×2",
-        "orange" => "●×1",
-        "gray" => "○",
-        _ => "×2",
+        "green" => format!("×2{}", pct_str),
+        "orange" => format!("plan{}", pct_str),
+        "gray" => "×2".to_string(),
+        _ => "×2".to_string(),
     };
 
     if let Some(tray) = app.tray_by_id("main") {
-        tray.set_title(Some(title)).map_err(|e| e.to_string())?;
+        tray.set_title(Some(&title)).map_err(|e| e.to_string())?;
     }
     Ok(())
 }

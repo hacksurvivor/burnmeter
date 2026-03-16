@@ -21,8 +21,9 @@ export default function App() {
     if (!promo.isPromoActive) status = "gray";
     else if (promo.isPeak) status = "orange";
     else status = "green";
-    invoke("update_tray_status", { status }).catch(() => {});
-  }, [promo.isPromoActive, promo.isPeak]);
+    const pct = usage ? Math.round(100 - usage.five_hour_pct) : null;
+    invoke("update_tray_status", { status, pct }).catch(() => {});
+  }, [promo.isPromoActive, promo.isPeak, usage]);
 
   return (
     <div className="app">
