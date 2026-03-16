@@ -16,7 +16,7 @@ html, body, #root { height: 100%; overflow: hidden; background: transparent; }
 
 body {
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.4;
   color: var(--cream);
   background: var(--bg);
@@ -38,30 +38,30 @@ body {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  gap: 12px;
+  gap: 14px;
   overflow: hidden;
 }
 
 /* ── Header ── */
 .hdr { text-align: center; }
-.hdr__row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.hdr__row { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .hdr__name {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--orange);
   letter-spacing: 0.18em;
 }
 .hdr__tag {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   background: var(--orange);
   color: var(--bg);
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 3px;
 }
 .hdr__tz {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--dim);
 }
 .hdr__tz b { color: var(--mid-gray); font-weight: 400; }
@@ -79,44 +79,43 @@ body {
   align-items: baseline;
 }
 .promo__status {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--green);
 }
 .promo--peak .promo__status { color: var(--orange); }
 .promo__countdown {
-  font-size: 15px;
+  font-size: 18px;
   color: var(--cream);
   font-weight: 700;
 }
 .promo__sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--mid-gray);
   margin-top: 4px;
 }
 
 /* Schedule rows */
 .promo__schedule {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .promo__schedule-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
 }
 .promo__schedule-label {
   font-weight: 700;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.06em;
-  padding: 2px 8px;
-  border-radius: 3px;
+  padding: 3px 9px;
+  border-radius: 4px;
 }
 .promo__schedule-row--free .promo__schedule-label {
-  background: rgba(120,140,93,0.15);
+  background: rgba(150,180,110,0.15);
   color: var(--green);
 }
 .promo__schedule-row--paid .promo__schedule-label {
@@ -125,25 +124,25 @@ body {
 }
 .promo__schedule-hours {
   color: var(--mid-gray);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 /* ── Timeline ── */
 .tl { margin-top: 12px; }
 .tl__bar {
-  height: 4px;
+  height: 6px;
   background: rgba(250,249,245,0.06);
-  border-radius: 2px;
+  border-radius: 3px;
   position: relative;
 }
 .tl__seg {
-  position: absolute; top: 0; height: 100%; border-radius: 2px;
+  position: absolute; top: 0; height: 100%; border-radius: 3px;
 }
 .tl__seg--peak { background: rgba(217,119,87,0.5); }
 .tl__seg--off { background: rgba(150,180,110,0.45); }
 .tl__now {
   position: absolute; top: -3px;
-  width: 3px; height: 10px;
+  width: 3px; height: 12px;
   background: var(--cream);
   border-radius: 2px;
   box-shadow: 0 0 6px rgba(250,249,245,0.5);
@@ -151,9 +150,9 @@ body {
 }
 .tl__legend {
   display: flex;
-  gap: 12px;
-  margin-top: 6px;
-  font-size: 9px;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: 11px;
 }
 .tl__legend-free { color: var(--green); }
 .tl__legend-paid { color: var(--orange); }
@@ -166,40 +165,40 @@ body {
 
 /* ── Usage ── */
 .usage__head {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--dim);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .usage__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 .usage__card {
   background: var(--bg-card);
   border-radius: 8px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid rgba(250,249,245,0.04);
 }
 .usage__card-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--dim);
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .usage__val {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   color: var(--blue);
   line-height: 1;
 }
 .usage__unit {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--mid-gray);
   margin-left: 2px;
@@ -219,9 +218,9 @@ body {
   transition: width 0.3s ease;
 }
 .usage__reset {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--dim);
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 /* ── Footer ── */
@@ -229,7 +228,7 @@ body {
   margin-top: auto;
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--dim);
 }
 .foot__err { color: var(--orange); }
