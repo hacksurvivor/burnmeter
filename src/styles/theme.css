@@ -1,10 +1,15 @@
 :root {
-  --bg: #372C25;
-  --bg-card: #42362E;
-  --accent: #D4815E;
-  --accent-soft: rgba(212,129,94,0.15);
-  --cream: #E4DACD;
-  --muted: #9D8C7B;
-  --dim: #7A6E63;
+  /* Claude's full palette — each color has a JOB */
+  --bg: #1c1b19;              /* warm dark base */
+  --bg-card: #252422;         /* elevated cards */
+
+  --orange: #d97757;          /* brand accent, warnings, peak */
+  --blue: #6a9bcc;            /* data, info, numbers */
+  --green: #788c5d;           /* good state, healthy, off-peak */
+  --cream: #faf9f5;           /* primary text */
+  --mid-gray: #b0aea5;        /* secondary text */
+  --light-gray: #e8e6dc;      /* subtle borders */
+  --dim: #6a6862;             /* tertiary text */
+
   --font: "JetBrains Mono", "SF Mono", monospace;
 }

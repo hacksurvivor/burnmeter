@@ -47,8 +47,10 @@ function Card({ label, pct, resetsAt }: {
   resetsAt: string | null;
 }) {
   const remaining = Math.max(0, 100 - pct);
-  const barColor = remaining > 20
-    ? "var(--accent)"
+  const barColor = remaining > 50
+    ? "var(--green)"
+    : remaining > 20
+    ? "var(--orange)"
     : "#c05050";
 
   return (
