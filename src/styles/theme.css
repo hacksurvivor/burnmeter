@@ -1,39 +1,15 @@
 :root {
-  /* Background — warm dark, NOT gray. Claude's own #141413 but with elevation. */
-  --bg-base: #141413;
-  --bg-card: #1e1d1b;
-  --bg-card-hover: #262523;
+  --bg: #181716;
+  --bg-card: #211f1d;
+  --bg-card-border: rgba(250, 249, 245, 0.07);
 
-  /* Claude palette — FULL saturation. This is a menu bar widget, not a photo editor. */
   --accent: #d97757;
-  --accent-soft: rgba(217, 119, 87, 0.12);
-  --green: #788c5d;
-  --green-soft: rgba(120, 140, 93, 0.12);
-  --blue: #6a9bcc;
+  --green: #8fa86a;
+  --green-bright: #a4c474;
+  --blue: #7bb0d9;
+  --cream: #faf9f5;
+  --warm-gray: #b5b0a6;
+  --dim: #7a756c;
 
-  /* Text — HIGH contrast. Cream on dark, not gray on gray. */
-  --text-bright: #faf9f5;
-  --text-primary: #e8e5dc;
-  --text-secondary: #a8a59c;
-  --text-dim: #706d64;
-
-  /* Typography — BIGGER. It's a utility widget, not a footnote. */
-  --font-mono: "JetBrains Mono", "SF Mono", monospace;
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 15px;
-  --text-lg: 18px;
-  --text-xl: 28px;
-  --text-hero: 36px;
-
-  /* Spacing */
-  --s1: 4px;
-  --s2: 8px;
-  --s3: 12px;
-  --s4: 16px;
-  --s5: 24px;
-  --s6: 32px;
-
-  --radius: 12px;
-  --radius-sm: 8px;
+  --font: "JetBrains Mono", "SF Mono", monospace;
 }

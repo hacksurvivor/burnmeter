@@ -15,35 +15,29 @@ export default function App() {
 
   useEffect(() => {
     let status: TrayStatus;
-    if (!promo.isPromoActive) {
-      status = "gray";
-    } else if (promo.isPeak) {
-      status = "orange";
-    } else {
-      status = "green";
-    }
+    if (!promo.isPromoActive) status = "gray";
+    else if (promo.isPeak) status = "orange";
+    else status = "green";
     invoke("update_tray_status", { status }).catch(() => {});
   }, [promo.isPromoActive, promo.isPeak]);
 
   return (
-    <div className="app retro animate-in">
-      <div className="app__content">
-        <Header timezone={timezone} utcOffset={utcOffset} />
-        <PromoTimer
-          promo={promo}
-          peakStartLocal={peakStartLocal}
-          peakEndLocal={peakEndLocal}
-          currentHour={currentHour}
-        />
-        <UsageLimits usage={usage} isStale={isStale} />
-        <QuickInfo
-          plan={usage?.plan ?? null}
-          isPromoActive={promo.isPromoActive}
-          promoEndDate="Mar 27"
-          lastUpdated={lastUpdated}
-          error={error}
-        />
-      </div>
+    <div className="app">
+      <Header timezone={timezone} utcOffset={utcOffset} />
+      <PromoTimer
+        promo={promo}
+        peakStartLocal={peakStartLocal}
+        peakEndLocal={peakEndLocal}
+        currentHour={currentHour}
+      />
+      <UsageLimits usage={usage} isStale={isStale} />
+      <QuickInfo
+        plan={usage?.plan ?? null}
+        isPromoActive={promo.isPromoActive}
+        promoEndDate="Mar 27"
+        lastUpdated={lastUpdated}
+        error={error}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-interface QuickInfoProps {
+interface Props {
   plan: string | null;
   isPromoActive: boolean;
   promoEndDate: string;
@@ -6,26 +6,17 @@ interface QuickInfoProps {
   error: string | null;
 }
 
-export function QuickInfo({
-  isPromoActive,
-  promoEndDate,
-  lastUpdated,
-  error,
-}: QuickInfoProps) {
+export function QuickInfo({ isPromoActive, promoEndDate, lastUpdated, error }: Props) {
   return (
-    <div className="footer">
-      <div>
+    <div className="foot">
+      <span>
         {error ? (
-          <span className="footer__error">{error}</span>
+          <span className="foot__err">{error}</span>
         ) : lastUpdated ? (
-          <span>Updated {lastUpdated.toLocaleTimeString()}</span>
+          <>Updated {lastUpdated.toLocaleTimeString()}</>
         ) : null}
-      </div>
-      <div>
-        {isPromoActive && (
-          <span className="footer__promo-end">Ends {promoEndDate}</span>
-        )}
-      </div>
+      </span>
+      <span>{isPromoActive ? `Ends ${promoEndDate}` : ""}</span>
     </div>
   );
 }
