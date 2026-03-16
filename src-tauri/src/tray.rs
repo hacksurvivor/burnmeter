@@ -5,12 +5,13 @@ use tauri::{
 };
 
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
-    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray-icon.png"))
-        .expect("failed to load tray icon");
-
     // Right-click menu with Quit
     let quit = MenuItem::with_id(app, "quit", "Quit Claude X2", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&quit])?;
+
+    // Use a 1x1 transparent pixel as icon (macOS requires an icon, but we only want text)
+    let transparent: &[u8] = &[0, 0, 0, 0]; // single RGBA pixel, fully transparent
+    let icon = tauri::image::Image::new(transparent, 1, 1);
 
     let tray = TrayIconBuilder::with_id("main")
         .icon(icon)
@@ -65,13 +66,13 @@ fn position_window_near_tray(window: &tauri::WebviewWindow) {
 
 #[tauri::command]
 pub fn update_tray_status(app: AppHandle, status: String, pct: Option<u32>) -> Result<(), String> {
-    let pct_str = pct.map(|p| format!(" {}%", p)).unwrap_or_default();
+    let pct_str = pct.map(|p| format!(" · {}%", p)).unwrap_or_default();
 
     let title = match status.as_str() {
-        "green" => format!("×2{}", pct_str),
-        "orange" => format!("plan{}", pct_str),
-        "gray" => "×2".to_string(),
-        _ => "×2".to_string(),
+        "green" => format!("🟢 FREE 2x{}", pct_str),
+        "orange" => format!("🟠 PEAK{}", pct_str),
+        "gray" => "⚪ Claude".to_string(),
+        _ => "Claude".to_string(),
     };
 
     if let Some(tray) = app.tray_by_id("main") {
