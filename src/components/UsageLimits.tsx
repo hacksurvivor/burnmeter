@@ -6,43 +6,53 @@ interface UsageLimitsProps {
 }
 
 function formatTokens(tokens: number): string {
-  if (tokens >= 1_000_000) return `${(tokens / 1_000_000).toFixed(1)}M`;
-  if (tokens >= 1_000) return `${(tokens / 1_000).toFixed(1)}K`;
+  if (tokens >= 1_000_000) return (tokens / 1_000_000).toFixed(1);
+  if (tokens >= 1_000) return (tokens / 1_000).toFixed(1);
   return `${tokens}`;
 }
 
-export function UsageLimits({ usage, isStale }: UsageLimitsProps) {
-  const staleClass = isStale ? "stale" : "";
+function tokenUnit(tokens: number): string {
+  if (tokens >= 1_000_000) return "M";
+  if (tokens >= 1_000) return "K";
+  return "";
+}
 
+export function UsageLimits({ usage, isStale }: UsageLimitsProps) {
   return (
-    <div className={`section ${staleClass}`}>
-      <div className="section__title">── USAGE (LOCAL) ─────────────────</div>
+    <div className={`usage ${isStale ? "stale" : ""}`}>
+      <div className="usage__label">Usage</div>
 
       {!usage ? (
-        <div className="text-muted">Scanning local logs...</div>
+        <div style={{ color: "var(--text-tertiary)", fontSize: "var(--font-size-xs)" }}>
+          Scanning logs...
+        </div>
       ) : (
-        <>
-          <div className="usage-row">
-            <div className="usage-row__label">Last 5 hours</div>
-            <div className="usage-row__bar">
-              <span className="text-info">{formatTokens(usage.session_tokens)}</span>
-              <span className="text-muted"> tokens</span>
-              <span className="text-muted"> · </span>
-              <span className="text-info">{usage.message_count_5h}</span>
-              <span className="text-muted"> messages</span>
+        <div className="usage__grid">
+          <div className="usage__item">
+            <div className="usage__item-label">5h window</div>
+            <div>
+              <span className="usage__item-value">
+                {formatTokens(usage.session_tokens)}
+              </span>
+              <span className="usage__item-unit">{tokenUnit(usage.session_tokens)} tok</span>
+            </div>
+            <div className="usage__item-sub">
+              {usage.message_count_5h} messages
             </div>
           </div>
-          <div className="usage-row">
-            <div className="usage-row__label">Last 7 days</div>
-            <div className="usage-row__bar">
-              <span className="text-info">{formatTokens(usage.weekly_tokens)}</span>
-              <span className="text-muted"> tokens</span>
-              <span className="text-muted"> · </span>
-              <span className="text-info">{usage.message_count_7d}</span>
-              <span className="text-muted"> messages</span>
+          <div className="usage__item">
+            <div className="usage__item-label">7d window</div>
+            <div>
+              <span className="usage__item-value">
+                {formatTokens(usage.weekly_tokens)}
+              </span>
+              <span className="usage__item-unit">{tokenUnit(usage.weekly_tokens)} tok</span>
+            </div>
+            <div className="usage__item-sub">
+              {usage.message_count_7d.toLocaleString()} messages
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

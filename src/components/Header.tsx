@@ -3,20 +3,17 @@ interface HeaderProps {
   utcOffset: string;
 }
 
-const LOGO = `  ╔═╗ ╦   ╔═╗ ╦ ╦ ╔╦╗ ╔═╗
-  ║   ║   ╠═╣ ║ ║  ║║ ╠═
-  ╚═╝ ╩═╝ ╩ ╩ ╚═╝ ═╩╝ ╚═╝`;
-
 export function Header({ timezone, utcOffset }: HeaderProps) {
   return (
     <div className="header">
-      <pre className="header__logo glow-orange">{LOGO}</pre>
-      <div className="header__subtitle">×2 TRACKER</div>
-      <div className="header__divider">{'─'.repeat(38)}</div>
-      <div className="header__timezone">
-        <span className="text-muted">📍 You: </span>
-        <span className="text-info">{timezone}</span>
-        <span className="text-muted"> ({utcOffset})</span>
+      <div className="header__brand">
+        <span className="header__logo-text">CLAUDE</span>
+        <span className="header__badge">2×</span>
+      </div>
+      <div className="header__location">
+        <span className="header__location-tz">{timezone}</span>
+        {" · "}
+        {utcOffset}
       </div>
     </div>
   );

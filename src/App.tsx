@@ -26,7 +26,7 @@ export default function App() {
   }, [promo.isPromoActive, promo.isPeak]);
 
   return (
-    <div className="app crt crt--flicker">
+    <div className="app retro animate-in">
       <div className="app__content">
         <Header timezone={timezone} utcOffset={utcOffset} />
         <PromoTimer

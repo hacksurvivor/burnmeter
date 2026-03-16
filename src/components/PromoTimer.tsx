@@ -15,37 +15,37 @@ export function PromoTimer({
 }: PromoTimerProps) {
   if (!promo.isPromoActive) return null;
 
-  const { isPeak, label, timeLeftSeconds, nextTransitionLabel } = promo;
+  const { isPeak, timeLeftSeconds, nextTransitionLabel } = promo;
+  const cardClass = isPeak ? "status-card--peak" : "status-card--offpeak";
+  const statusClass = isPeak ? "status-card__status--peak" : "status-card__status--offpeak";
 
   return (
-    <div className="section">
-      <div className="section__title">── PROMO STATUS ──────────────────</div>
+    <div className={`status-card ${cardClass}`}>
+      <div className="status-card__header">
+        <span className="status-card__label">Promo Status</span>
+      </div>
 
-      <div className="promo-status">
-        <span className={isPeak ? "text-orange glow-orange" : "text-green glow-green"}>
-          {isPeak ? "●" : "⚡"} {label}
+      <div className="status-card__hero">
+        <span className={`status-card__status ${statusClass}`}>
+          {isPeak ? "PEAK" : "OFF-PEAK 2×"}
         </span>
-        <span className="text-muted">
-          {"  ⏱  "}
-          {formatSimpleCountdown(timeLeftSeconds)} left
+        <span className="status-card__countdown">
+          {formatCountdown(timeLeftSeconds)}
         </span>
       </div>
 
-      <div className="text-muted">{nextTransitionLabel}</div>
+      <div className="status-card__next">{nextTransitionLabel}</div>
 
-      <div className="timeline">
-        <div className="timeline__label">Today's windows:</div>
-        <TimelineBar
-          peakStart={peakStartLocal}
-          peakEnd={peakEndLocal}
-          currentHour={currentHour}
-        />
-      </div>
+      <Timeline
+        peakStart={peakStartLocal}
+        peakEnd={peakEndLocal}
+        currentHour={currentHour}
+      />
     </div>
   );
 }
 
-function TimelineBar({
+function Timeline({
   peakStart,
   peakEnd,
   currentHour,
@@ -54,42 +54,50 @@ function TimelineBar({
   peakEnd: number;
   currentHour: number;
 }) {
-  const WIDTH = 36;
-  const bar: string[] = [];
+  const toPercent = (h: number) => `${(h / 24) * 100}%`;
+  const nowPos = toPercent(currentHour);
 
-  for (let i = 0; i < WIDTH; i++) {
-    const hour = (i / WIDTH) * 24;
-    const isPeakHour = peakStart <= peakEnd
-      ? hour >= peakStart && hour < peakEnd
-      : hour >= peakStart || hour < peakEnd;
-    bar.push(isPeakHour ? "█" : "░");
-  }
+  // Handle peak hours that may wrap around midnight
+  const wraps = peakStart > peakEnd;
 
-  const markerPos = Math.min(Math.round((currentHour / 24) * WIDTH), WIDTH - 1);
+  const pad = (n: number) => n.toString().padStart(2, "0");
 
   return (
-    <div className="timeline__bar">
-      <div>
-        {bar.map((char, i) => (
-          <span key={i} className={i === markerPos ? "text-green" : char === "█" ? "text-orange" : "text-muted"}>
-            {i === markerPos ? "▌" : char}
-          </span>
-        ))}
+    <div className="timeline">
+      <div className="timeline__track">
+        {wraps ? (
+          <>
+            <div
+              className="timeline__peak"
+              style={{ left: toPercent(peakStart), right: "0" }}
+            />
+            <div
+              className="timeline__peak"
+              style={{ left: "0", width: toPercent(peakEnd) }}
+            />
+          </>
+        ) : (
+          <div
+            className="timeline__peak"
+            style={{ left: toPercent(peakStart), width: toPercent(peakEnd - peakStart) }}
+          />
+        )}
+        <div className="timeline__now" style={{ left: nowPos }} />
       </div>
-      <div className="timeline__labels text-muted">
-        <span>0</span>
-        <span>{peakStart}</span>
-        <span>{peakEnd}</span>
-        <span>24</span>
+      <div className="timeline__labels">
+        <span>00:00</span>
+        <span>{pad(peakStart)}:00</span>
+        <span>{pad(peakEnd)}:00</span>
+        <span>24:00</span>
       </div>
     </div>
   );
 }
 
-function formatSimpleCountdown(seconds: number): string {
-  if (seconds < 60) return "<1m";
+function formatCountdown(seconds: number): string {
+  if (seconds < 60) return "< 1m";
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
+  if (h > 0) return `${h}h ${m}m left`;
+  return `${m}m left`;
 }

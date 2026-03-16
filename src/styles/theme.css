@@ -1,19 +1,42 @@
 :root {
-  --color-dark: #141413;
-  --color-light: #faf9f5;
-  --color-orange: #d97757;
-  --color-blue: #6a9bcc;
-  --color-green: #788c5d;
-  --color-mid-gray: #b0aea5;
-  --color-light-gray: #e8e6dc;
+  /* Base palette — proper dark mode (Malewicz: never pure black) */
+  --bg-base: #151514;
+  --bg-raised: #1c1c1a;
+  --bg-elevated: #242422;
+  --bg-surface: #2c2c29;
 
-  --color-bg: var(--color-dark);
-  --color-text: var(--color-light);
-  --color-accent: var(--color-orange);
-  --color-success: var(--color-green);
-  --color-info: var(--color-blue);
-  --color-muted: var(--color-mid-gray);
-  --color-border: var(--color-light-gray);
+  /* Claude palette — desaturated 15% for dark mode */
+  --accent: #c9694d;
+  --accent-dim: rgba(201, 105, 77, 0.15);
+  --accent-glow: rgba(201, 105, 77, 0.08);
+  --green: #6e8254;
+  --green-dim: rgba(110, 130, 84, 0.15);
+  --blue: #6090b8;
+  --blue-dim: rgba(96, 144, 184, 0.12);
 
-  --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+  /* Text hierarchy */
+  --text-primary: #e8e6de;
+  --text-secondary: #9e9c94;
+  --text-tertiary: #6a6862;
+
+  /* Typography */
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-base: 13px;
+  --font-size-lg: 15px;
+  --font-size-xl: 20px;
+
+  /* Spacing — 8px grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }

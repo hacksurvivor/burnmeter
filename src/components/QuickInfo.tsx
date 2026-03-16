@@ -7,33 +7,25 @@ interface QuickInfoProps {
 }
 
 export function QuickInfo({
-  plan,
   isPromoActive,
   promoEndDate,
   lastUpdated,
   error,
 }: QuickInfoProps) {
   return (
-    <div className="section quick-info">
-      <div className="section__title">── QUICK INFO ────────────────────</div>
-      <div className="quick-info__row">
-        {plan && (
-          <span>
-            Plan: <span className="text-info">{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>
-          </span>
-        )}
+    <div className="footer">
+      <div>
+        {error ? (
+          <span className="footer__error">{error}</span>
+        ) : lastUpdated ? (
+          <span>Updated {lastUpdated.toLocaleTimeString()}</span>
+        ) : null}
+      </div>
+      <div>
         {isPromoActive && (
-          <span className="text-muted"> │ Promo ends: {promoEndDate}</span>
+          <span className="footer__promo-end">Ends {promoEndDate}</span>
         )}
       </div>
-      {error && (
-        <div className="quick-info__error text-orange">⚠ {error}</div>
-      )}
-      {lastUpdated && (
-        <div className="quick-info__updated text-muted">
-          Updated: {lastUpdated.toLocaleTimeString()}
-        </div>
-      )}
     </div>
   );
 }
