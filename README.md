@@ -1,73 +1,67 @@
-# Claude X2 Tracker
+# Burnmeter
 
-macOS menu bar app that tracks Claude's 2× usage promotion and usage limits with a retro CRT aesthetic.
+Track your Claude usage and the March 2026 2x promotion — right from your menu bar.
+
+## What it does
+
+- Shows whether you're in **FREE 2x** (off-peak, bonus tokens) or **PEAK** (your plan tokens)
+- Countdown to the next status change
+- Real-time **5-hour** and **7-day** usage percentages from Anthropic's API
+- Automatic timezone detection — shows peak hours in your local time
+- Weekend detection — all day 2x on weekends
+
+## Menu bar
 
 ```
-╔══════════════════════════════════════════╗
-║   ╔═╗ ╦   ╔═╗ ╦ ╦ ╔╦╗ ╔═╗             ║
-║   ║   ║   ╠═╣ ║ ║  ║║ ╠═              ║
-║   ╚═╝ ╩═╝ ╩ ╩ ╚═╝ ═╩╝ ╚═╝             ║
-║              ×2 TRACKER                  ║
-╠══════════════════════════════════════════╣
-║  📍 You: Europe/Istanbul (UTC+3)         ║
-║  ── PROMO STATUS ──────────────────────  ║
-║  ⚡ OFF-PEAK (2×)     ⏱  3h 24m left    ║
-║  Next peak: 15:00 - 21:00 (your time)   ║
-║  ░░░░████████████░░░░░░░░░░░░░░░░░░░░   ║
-║  ── USAGE LIMITS ──────────────────────  ║
-║  5h Window                               ║
-║  [████████████░░░░░░░░] 62% remaining    ║
-║  7d Window                               ║
-║  [██████░░░░░░░░░░░░░░] 31% remaining   ║
-╚══════════════════════════════════════════╝
+🟢 FREE 2x · 80%     — off-peak, 80% of 5h limit remaining
+🟠 PEAK · 45%         — peak hours, 45% remaining
 ```
 
-## Features
+## Install
 
-- Promotion timer with peak/off-peak status and countdown
-- Automatic timezone detection and conversion
-- 5-hour and 7-day usage limit tracking
-- Retro CRT terminal aesthetic with Claude's design language
-- System tray icon with status colors
-- Click-away dismissal
-- Lightweight (~5MB, Tauri v2)
+### From source (macOS / Linux / Windows)
 
-## Prerequisites
-
-- macOS
-- Claude Code (for `claude login` — provides the OAuth token)
-- Rust
-- Node.js 20+
-- pnpm
-
-## Installation
+**Prerequisites:** [Rust](https://rustup.rs/), [Node.js](https://nodejs.org/) 20+, [pnpm](https://pnpm.io/), [Claude Code](https://claude.ai/code) (`claude login` required)
 
 ```bash
-git clone https://github.com/your-username/claude-x2.git
-cd claude-x2
+git clone https://github.com/anthropics/burnmeter.git
+cd burnmeter
 pnpm install
 pnpm tauri build
-# Open the .dmg from src-tauri/target/release/bundle/dmg/
 ```
+
+**macOS:** DMG at `src-tauri/target/release/bundle/dmg/`
+**Windows:** MSI/NSIS at `src-tauri/target/release/bundle/`
+**Linux:** DEB/AppImage at `src-tauri/target/release/bundle/`
 
 ## How it works
 
-- Reads Claude Code's OAuth token from macOS Keychain (read-only)
-- Polls `api.anthropic.com/api/oauth/usage` every 60 seconds
-- Calculates promotion windows using IANA timezone `America/Los_Angeles`
-- Auto-detects user's timezone and converts peak hours to local time
+1. Reads your Claude Code OAuth token (macOS Keychain / Linux+Windows credentials file) — **read-only, never writes**
+2. Calls `api.anthropic.com/api/oauth/usage` every 60 seconds for real usage percentages
+3. Calculates peak/off-peak windows using IANA timezone `America/Los_Angeles`
+4. Converts to your local timezone automatically
+
+## Promotion details
+
+**March 13-27, 2026** — Anthropic doubles usage limits during off-peak hours:
+- **Peak (1x):** 5-11 AM Pacific Time, weekdays only
+- **Off-peak (2x):** Everything else, including all weekend hours
+- **Plans:** Free, Pro, Max, Team (Enterprise excluded)
 
 ## Tech stack
 
-- **Tauri v2** — native macOS app shell
-- **Rust** — Keychain access, system tray, background polling
-- **React + TypeScript** — UI
-- **Vite** — frontend build
+| Component | Choice |
+|-----------|--------|
+| App shell | Tauri v2 |
+| Backend | Rust |
+| Frontend | React + TypeScript |
+| Build | Vite |
+| API | Anthropic OAuth usage endpoint |
 
 ## Contributing
 
-PRs welcome. Please open an issue first for significant changes.
+PRs welcome. MIT license.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT

@@ -9,21 +9,12 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            // Hide dock icon — this is a menu bar-only app
             #[cfg(target_os = "macos")]
-            {
-                eprintln!("[x2] Setting activation policy to Accessory...");
-                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-            }
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            eprintln!("[x2] Creating tray icon...");
-            match tray::create_tray(app.handle()) {
-                Ok(_) => eprintln!("[x2] Tray icon created successfully"),
-                Err(e) => eprintln!("[x2] ERROR creating tray: {:?}", e),
-            }
+            tray::create_tray(app.handle())?;
 
             if let Some(window) = app.get_webview_window("main") {
-                eprintln!("[x2] Hiding main window...");
                 let _ = window.hide();
 
                 let w = window.clone();
@@ -32,8 +23,6 @@ pub fn run() {
                         let _ = w.hide();
                     }
                 });
-            } else {
-                eprintln!("[x2] WARNING: main window not found!");
             }
             Ok(())
         })

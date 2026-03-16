@@ -5,21 +5,19 @@ use tauri::{
 };
 
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
-    // Right-click menu with Quit
-    let quit = MenuItem::with_id(app, "quit", "Quit Claude X2", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "Quit Burnmeter", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&quit])?;
 
-    // Use a 1x1 transparent pixel as icon (macOS requires an icon, but we only want text)
-    let transparent: &[u8] = &[0, 0, 0, 0]; // single RGBA pixel, fully transparent
+    // 1x1 transparent pixel — we only show text in the tray
+    let transparent: &[u8] = &[0, 0, 0, 0];
     let icon = tauri::image::Image::new(transparent, 1, 1);
 
-    let tray = TrayIconBuilder::with_id("main")
+    let mut builder = TrayIconBuilder::with_id("main")
         .icon(icon)
-        .icon_as_template(true)
         .title("×2")
         .tooltip("Burnmeter")
         .menu(&menu)
-        .menu_on_left_click(false)
+        .show_menu_on_left_click(false)
         .on_menu_event(|app, event| {
             if event.id.as_ref() == "quit" {
                 app.exit(0);
@@ -43,9 +41,15 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
                     }
                 }
             }
-        })
-        .build(app)?;
+        });
 
+    // macOS template icon rendering
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.icon_as_template(true);
+    }
+
+    let tray = builder.build(app)?;
     Ok(tray)
 }
 
@@ -54,7 +58,7 @@ fn position_window_near_tray(window: &tauri::WebviewWindow) {
         if let Some(monitor) = monitor {
             let screen_size = monitor.size();
             let scale = monitor.scale_factor();
-            let window_width = 360.0;
+            let window_width = 380.0;
             let x = (screen_size.width as f64 / scale) - window_width - 8.0;
             let y = 28.0;
             let _ = window.set_position(tauri::Position::Logical(
@@ -71,8 +75,8 @@ pub fn update_tray_status(app: AppHandle, status: String, pct: Option<u32>) -> R
     let title = match status.as_str() {
         "green" => format!("🟢 FREE 2x{}", pct_str),
         "orange" => format!("🟠 PEAK{}", pct_str),
-        "gray" => "⚪ Claude".to_string(),
-        _ => "Claude".to_string(),
+        "gray" => "⚪ Burnmeter".to_string(),
+        _ => "Burnmeter".to_string(),
     };
 
     if let Some(tray) = app.tray_by_id("main") {
