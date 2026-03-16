@@ -139,8 +139,8 @@ body {
 .tl__seg {
   position: absolute; top: 0; height: 100%; border-radius: 2px;
 }
-.tl__seg--peak { background: rgba(217,119,87,0.4); }
-.tl__seg--off { background: rgba(120,140,93,0.3); }
+.tl__seg--peak { background: rgba(217,119,87,0.5); }
+.tl__seg--off { background: rgba(150,180,110,0.45); }
 .tl__now {
   position: absolute; top: -3px;
   width: 3px; height: 10px;
