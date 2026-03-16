@@ -1,9 +1,53 @@
-// Placeholder – full wiring in Tasks 15-16
+import { Header } from "./components/Header";
+import { PromoTimer } from "./components/PromoTimer";
+import { UsageLimits } from "./components/UsageLimits";
+import { QuickInfo } from "./components/QuickInfo";
+import { ConnectScreen } from "./components/ConnectScreen";
+import { useUsageData } from "./hooks/useUsageData";
+import { usePromoStatus } from "./hooks/usePromoStatus";
+import { invoke } from "@tauri-apps/api/core";
+import { useEffect } from "react";
+import type { TrayStatus } from "./lib/constants";
+
 export default function App() {
+  const { usage, connected, error, lastUpdated, isStale, retry } = useUsageData();
+  const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour } =
+    usePromoStatus();
+
+  useEffect(() => {
+    let status: TrayStatus;
+    if (!promo.isPromoActive) {
+      status = "gray";
+    } else if (promo.isPeak) {
+      status = "orange";
+    } else {
+      status = "green";
+    }
+    invoke("update_tray_status", { status }).catch(() => {});
+  }, [promo.isPromoActive, promo.isPeak]);
+
+  if (!connected) {
+    return <ConnectScreen onRetry={retry} />;
+  }
+
   return (
     <div className="app crt crt--flicker">
       <div className="app__content">
-        <span className="text-orange">Claude X2 Tracker — loading…</span>
+        <Header timezone={timezone} utcOffset={utcOffset} />
+        <PromoTimer
+          promo={promo}
+          peakStartLocal={peakStartLocal}
+          peakEndLocal={peakEndLocal}
+          currentHour={currentHour}
+        />
+        <UsageLimits usage={usage} isStale={isStale} />
+        <QuickInfo
+          plan={usage?.plan ?? null}
+          isPromoActive={promo.isPromoActive}
+          promoEndDate="Mar 27"
+          lastUpdated={lastUpdated}
+          error={error}
+        />
       </div>
     </div>
   );
