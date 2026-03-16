@@ -1,0 +1,19 @@
+:root {
+  --color-dark: #141413;
+  --color-light: #faf9f5;
+  --color-orange: #d97757;
+  --color-blue: #6a9bcc;
+  --color-green: #788c5d;
+  --color-mid-gray: #b0aea5;
+  --color-light-gray: #e8e6dc;
+
+  --color-bg: var(--color-dark);
+  --color-text: var(--color-light);
+  --color-accent: var(--color-orange);
+  --color-success: var(--color-green);
+  --color-info: var(--color-blue);
+  --color-muted: var(--color-mid-gray);
+  --color-border: var(--color-light-gray);
+
+  --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+}
