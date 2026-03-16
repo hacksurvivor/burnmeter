@@ -17,7 +17,7 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
         .icon(icon)
         .icon_as_template(true)
         .title("×2")
-        .tooltip("Claude X2 Tracker")
+        .tooltip("Burnmeter")
         .menu(&menu)
         .menu_on_left_click(false)
         .on_menu_event(|app, event| {
