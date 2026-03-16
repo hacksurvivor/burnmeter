@@ -1,5 +1,3 @@
-import { AsciiProgressBar } from "./AsciiProgressBar";
-import { formatCountdown, formatPercent } from "../lib/format";
 import type { UsageData } from "../types/usage";
 
 interface UsageLimitsProps {
@@ -7,58 +5,45 @@ interface UsageLimitsProps {
   isStale: boolean;
 }
 
+function formatTokens(tokens: number): string {
+  if (tokens >= 1_000_000) return `${(tokens / 1_000_000).toFixed(1)}M`;
+  if (tokens >= 1_000) return `${(tokens / 1_000).toFixed(1)}K`;
+  return `${tokens}`;
+}
+
 export function UsageLimits({ usage, isStale }: UsageLimitsProps) {
   const staleClass = isStale ? "stale" : "";
 
   return (
     <div className={`section ${staleClass}`}>
-      <div className="section__title">── USAGE LIMITS ──────────────────</div>
+      <div className="section__title">── USAGE (LOCAL) ─────────────────</div>
 
       {!usage ? (
-        <div className="text-muted">Loading usage data...</div>
+        <div className="text-muted">Scanning local logs...</div>
       ) : (
         <>
-          <UsageRow
-            label="5h Window"
-            usagePercent={usage.session.usagePercent}
-            resetAt={usage.session.resetAt}
-          />
-          <UsageRow
-            label="7d Window"
-            usagePercent={usage.weekly.usagePercent}
-            resetAt={usage.weekly.resetAt}
-          />
+          <div className="usage-row">
+            <div className="usage-row__label">Last 5 hours</div>
+            <div className="usage-row__bar">
+              <span className="text-info">{formatTokens(usage.session_tokens)}</span>
+              <span className="text-muted"> tokens</span>
+              <span className="text-muted"> · </span>
+              <span className="text-info">{usage.message_count_5h}</span>
+              <span className="text-muted"> messages</span>
+            </div>
+          </div>
+          <div className="usage-row">
+            <div className="usage-row__label">Last 7 days</div>
+            <div className="usage-row__bar">
+              <span className="text-info">{formatTokens(usage.weekly_tokens)}</span>
+              <span className="text-muted"> tokens</span>
+              <span className="text-muted"> · </span>
+              <span className="text-info">{usage.message_count_7d}</span>
+              <span className="text-muted"> messages</span>
+            </div>
+          </div>
         </>
       )}
-    </div>
-  );
-}
-
-function UsageRow({
-  label,
-  usagePercent,
-  resetAt,
-}: {
-  label: string;
-  usagePercent: number;
-  resetAt: string;
-}) {
-  const remaining = Math.max(0, 100 - usagePercent);
-  const resetSeconds = Math.max(0, (new Date(resetAt).getTime() - Date.now()) / 1000);
-
-  const colorClass =
-    remaining > 50 ? "text-green" : remaining > 20 ? "text-orange" : "text-red";
-
-  return (
-    <div className="usage-row">
-      <div className="usage-row__label">{label}</div>
-      <div className="usage-row__bar">
-        <AsciiProgressBar percent={remaining} width={20} colorClass={colorClass} />
-        <span className={colorClass}> {formatPercent(usagePercent)} remaining</span>
-      </div>
-      <div className="usage-row__reset text-muted">
-        Resets in: {formatCountdown(resetSeconds)}
-      </div>
     </div>
   );
 }

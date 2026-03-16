@@ -2,7 +2,6 @@ import { Header } from "./components/Header";
 import { PromoTimer } from "./components/PromoTimer";
 import { UsageLimits } from "./components/UsageLimits";
 import { QuickInfo } from "./components/QuickInfo";
-import { ConnectScreen } from "./components/ConnectScreen";
 import { useUsageData } from "./hooks/useUsageData";
 import { usePromoStatus } from "./hooks/usePromoStatus";
 import { invoke } from "@tauri-apps/api/core";
@@ -10,7 +9,7 @@ import { useEffect } from "react";
 import type { TrayStatus } from "./lib/constants";
 
 export default function App() {
-  const { usage, connected, error, lastUpdated, isStale, retry } = useUsageData();
+  const { usage, error, lastUpdated, isStale } = useUsageData();
   const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour } =
     usePromoStatus();
 
@@ -25,10 +24,6 @@ export default function App() {
     }
     invoke("update_tray_status", { status }).catch(() => {});
   }, [promo.isPromoActive, promo.isPeak]);
-
-  if (!connected) {
-    return <ConnectScreen onRetry={retry} />;
-  }
 
   return (
     <div className="app crt crt--flicker">
