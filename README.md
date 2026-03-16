@@ -10,12 +10,11 @@ Track your Claude usage and the March 2026 2x promotion — right from your menu
 - Automatic timezone detection — shows peak hours in your local time
 - Weekend detection — all day 2x on weekends
 
-## Menu bar
+## Screenshots
 
-```
-🟢 FREE 2x · 80%     — off-peak, 80% of 5h limit remaining
-🟠 PEAK · 45%         — peak hours, 45% remaining
-```
+![Menu bar](docs/screenshots/menubar.png)
+
+![Popover](docs/screenshots/popover-cropped.png)
 
 ## Install
 
