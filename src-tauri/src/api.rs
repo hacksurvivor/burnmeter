@@ -93,21 +93,19 @@ fn parse_local_usage() -> Result<UsageResponse, String> {
         }
     }
 
-    // Session resets 5h after the earliest message in the window
-    // Weekly resets 7 days after the window start
-    let session_reset_seconds = if message_count_5h > 0 {
-        let reset_at = five_hours_ago + (5 * 60 * 60 * 1000);
+    // Session: rolling 5h window. The oldest message in the window will
+    // "roll out" in (5h - age_of_oldest_message) time.
+    // So reset = earliest_session_ts + 5h - now
+    let session_reset_seconds = if message_count_5h > 0 && earliest_session_ts < now {
+        let reset_at = earliest_session_ts + (5 * 60 * 60 * 1000);
         reset_at.saturating_sub(now) / 1000
     } else {
-        0
+        5 * 60 * 60  // full 5h if no messages
     };
 
-    let weekly_reset_seconds = if message_count_7d > 0 {
-        let reset_at = seven_days_ago + (7 * 24 * 60 * 60 * 1000);
-        reset_at.saturating_sub(now) / 1000
-    } else {
-        0
-    };
+    // Weekly: rolling 7d window. Similar logic but we don't track earliest weekly.
+    // Just show how long until the 7d window rolls forward (approximate).
+    let weekly_reset_seconds = 7 * 24 * 60 * 60; // always ~7d for rolling window
 
     Ok(UsageResponse {
         session_input_tokens: si,

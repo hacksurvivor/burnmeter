@@ -41,15 +41,15 @@ export function UsageLimits({ usage, isStale }: Props) {
       <div className="usage__grid">
         <Card
           label="5h window"
-          output={usage.session_output_tokens}
           total={sessionTotal}
+          output={usage.session_output_tokens}
           msgs={usage.message_count_5h}
           resetIn={usage.session_reset_seconds}
         />
         <Card
           label="7d window"
-          output={usage.weekly_output_tokens}
           total={weeklyTotal}
+          output={usage.weekly_output_tokens}
           msgs={usage.message_count_7d}
           resetIn={usage.weekly_reset_seconds}
         />
@@ -58,15 +58,13 @@ export function UsageLimits({ usage, isStale }: Props) {
   );
 }
 
-function Card({ label, output, total, msgs, resetIn }: {
+function Card({ label, total, output, msgs, resetIn }: {
   label: string;
-  output: number;
   total: number;
+  output: number;
   msgs: number;
   resetIn: number;
 }) {
-  const pctOutput = total > 0 ? Math.round((output / total) * 100) : 0;
-
   return (
     <div className="usage__card">
       <div className="usage__card-label">{label}</div>
@@ -75,7 +73,7 @@ function Card({ label, output, total, msgs, resetIn }: {
         <span className="usage__unit">{tokUnit(total)} tok</span>
       </div>
       <div className="usage__sub">
-        {pctOutput}% output · {msgs.toLocaleString()} msgs
+        {fmtTok(output)}{tokUnit(output)} out · {msgs.toLocaleString()} msgs
       </div>
       <div className="usage__reset">
         Resets in {fmtReset(resetIn)}
