@@ -1,13 +1,10 @@
 :root {
-  --bg: #1a1917;
-  --bg-card: #222120;
-  --bg-card-border: rgba(250,249,245,0.04);
-  --accent: #d97757;
-  --green: #a8c96e;
-  --green-border: #92ad63;
-  --cream: #faf9f5;
-  --gray: #8a857c;
-  --dim: #6e6a62;
-  --faint: #5a5650;
+  --bg: #372C25;
+  --bg-card: #42362E;
+  --accent: #D4815E;
+  --accent-soft: rgba(212,129,94,0.15);
+  --cream: #E4DACD;
+  --muted: #9D8C7B;
+  --dim: #7A6E63;
   --font: "JetBrains Mono", "SF Mono", monospace;
 }

@@ -71,8 +71,8 @@ function TL({ start, end, now }: { start: number; end: number; now: number }) {
         <div className="tl__now" style={{ left: p(now) }} />
       </div>
       <div className="tl__legend">
-        <span className="tl__legend-free">■ free</span>
-        <span className="tl__legend-paid">■ your plan</span>
+        <span className="tl__legend-free">● free 2x</span>
+        <span className="tl__legend-paid">● your plan</span>
       </div>
     </div>
   );

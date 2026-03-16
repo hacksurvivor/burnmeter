@@ -29,11 +29,10 @@ body {
   border-radius: 14px;
   overflow: hidden;
   background: var(--bg);
-  border: 1px solid rgba(250,249,245,0.08);
-  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  border: 1px solid rgba(228,218,205,0.1);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
 }
 
-/* ── App: 8px grid, tight gaps ── */
 .app {
   height: 100%;
   display: flex;
@@ -43,7 +42,7 @@ body {
   overflow: hidden;
 }
 
-/* ── Header: small, out of the way ── */
+/* ── Header ── */
 .hdr { text-align: center; }
 .hdr__row { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .hdr__name {
@@ -63,13 +62,13 @@ body {
 .hdr__tz {
   margin-top: 4px;
   font-size: 11px;
-  color: var(--dim);
+  color: var(--muted);
 }
-.hdr__tz b { color: var(--gray); font-weight: 400; }
+.hdr__tz b { color: var(--cream); font-weight: 400; }
 
-/* ── Promo: compact status card ── */
+/* ── Promo ── */
 .promo {
-  background: #1f1e1c;
+  background: var(--bg-card);
   border-radius: 10px;
   padding: 16px;
 }
@@ -81,16 +80,15 @@ body {
 .promo__status {
   font-size: 17px;
   font-weight: 700;
-  color: var(--green);
+  color: var(--accent);
 }
-.promo--peak .promo__status { color: var(--accent); }
 .promo__countdown {
   font-size: 15px;
-  color: var(--gray);
+  color: var(--accent);
 }
 .promo__sub {
   font-size: 12px;
-  color: var(--dim);
+  color: var(--muted);
   margin-top: 4px;
 }
 
@@ -111,41 +109,41 @@ body {
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.06em;
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: 3px;
 }
 .promo__schedule-row--free .promo__schedule-label {
-  background: rgba(146,173,99,0.2);
-  color: var(--green);
-}
-.promo__schedule-row--paid .promo__schedule-label {
-  background: rgba(217,119,87,0.15);
+  background: var(--accent-soft);
   color: var(--accent);
 }
+.promo__schedule-row--paid .promo__schedule-label {
+  background: rgba(228,218,205,0.08);
+  color: var(--muted);
+}
 .promo__schedule-hours {
-  color: var(--gray);
+  color: var(--muted);
   font-size: 12px;
 }
 
-/* ── Timeline: only on weekdays ── */
+/* ── Timeline ── */
 .tl { margin-top: 12px; }
 .tl__bar {
   height: 4px;
-  background: rgba(250,249,245,0.06);
+  background: rgba(228,218,205,0.08);
   border-radius: 2px;
   position: relative;
 }
 .tl__seg {
   position: absolute; top: 0; height: 100%; border-radius: 2px;
 }
-.tl__seg--peak { background: rgba(217,119,87,0.45); }
-.tl__seg--off { background: rgba(146,173,99,0.2); }
+.tl__seg--peak { background: rgba(228,218,205,0.15); }
+.tl__seg--off { background: rgba(212,129,94,0.4); }
 .tl__now {
   position: absolute; top: -3px;
   width: 3px; height: 10px;
   background: var(--cream);
   border-radius: 2px;
-  box-shadow: 0 0 6px rgba(250,249,245,0.5);
+  box-shadow: 0 0 6px rgba(228,218,205,0.5);
   z-index: 2;
 }
 .tl__legend {
@@ -153,18 +151,17 @@ body {
   gap: 12px;
   margin-top: 6px;
   font-size: 9px;
-  color: var(--faint);
 }
-.tl__legend-free { color: var(--green); }
-.tl__legend-paid { color: var(--accent); }
+.tl__legend-free { color: var(--accent); }
+.tl__legend-paid { color: var(--muted); }
 
 /* ── Divider ── */
 .divider {
   height: 1px;
-  background: rgba(250,249,245,0.06);
+  background: rgba(228,218,205,0.08);
 }
 
-/* ── Usage: HERO section ── */
+/* ── Usage ── */
 .usage__head {
   font-size: 10px;
   font-weight: 700;
@@ -179,7 +176,7 @@ body {
   gap: 8px;
 }
 .usage__card {
-  background: #1f1e1c;
+  background: var(--bg-card);
   border-radius: 8px;
   padding: 14px;
 }
@@ -200,7 +197,7 @@ body {
 .usage__unit {
   font-size: 13px;
   font-weight: 400;
-  color: var(--gray);
+  color: var(--muted);
   margin-left: 2px;
 }
 .usage__bar {
@@ -208,7 +205,7 @@ body {
 }
 .usage__bar-track {
   height: 6px;
-  background: rgba(250,249,245,0.06);
+  background: rgba(228,218,205,0.08);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -219,7 +216,7 @@ body {
 }
 .usage__reset {
   font-size: 9px;
-  color: var(--faint);
+  color: var(--dim);
   margin-top: 6px;
 }
 
@@ -229,7 +226,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 10px;
-  color: var(--faint);
+  color: var(--dim);
 }
 .foot__err { color: var(--accent); }
 
