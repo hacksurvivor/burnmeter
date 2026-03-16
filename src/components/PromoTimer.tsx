@@ -14,30 +14,18 @@ export function PromoTimer({ promo, peakStartLocal, peakEndLocal, currentHour, i
 
   return (
     <div className={`promo ${isPeak ? "promo--peak" : ""}`}>
-      <div className="promo__status">
-        {isPeak ? "PEAK 1x" : "OFF-PEAK 2x"}
+      <div className="promo__row">
+        <span className="promo__status">
+          {isPeak ? "PEAK" : "OFF-PEAK 2x"}
+        </span>
+        <span className="promo__countdown">{fmt(timeLeftSeconds)}</span>
       </div>
-      <div className="promo__explain">
-        {isPeak
-          ? "Standard rate · uses your plan tokens"
-          : "Double usage · bonus tokens from Anthropic"}
+      <div className="promo__sub">
+        {isWeekend ? "Weekend — all day bonus" : nextTransitionLabel}
       </div>
-      <div className="promo__countdown">{fmt(timeLeftSeconds)}</div>
-      <div className="promo__next">{nextTransitionLabel}</div>
 
-      {isWeekend ? (
-        <div className="tl">
-          <div className="tl__bar">
-            <div className="tl__seg tl__seg--off" style={{ left: "0", width: "100%" }} />
-            <div className="tl__now" style={{ left: `${(currentHour / 24) * 100}%` }} />
-          </div>
-          <div className="tl__labels">
-            <span>00</span>
-            <span style={{ flex: 1, textAlign: "center" }}>All day 2x</span>
-            <span>24</span>
-          </div>
-        </div>
-      ) : (
+      {/* Timeline only on weekdays — weekends are all off-peak, no bar needed */}
+      {!isWeekend && (
         <TL start={peakStartLocal} end={peakEndLocal} now={currentHour} />
       )}
     </div>
@@ -78,8 +66,8 @@ function TL({ start, end, now }: { start: number; end: number; now: number }) {
 }
 
 function fmt(s: number): string {
-  if (s < 60) return "<1m left";
+  if (s < 60) return "<1m";
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }

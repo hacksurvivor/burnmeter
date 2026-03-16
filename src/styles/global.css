@@ -17,7 +17,7 @@ html, body, #root { height: 100%; overflow: hidden; background: transparent; }
 body {
   font-family: var(--font);
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.4;
   color: var(--cream);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -33,176 +33,155 @@ body {
   box-shadow: 0 24px 80px rgba(0,0,0,0.6);
 }
 
+/* ── App: 8px grid, tight gaps ── */
 .app {
   height: 100%;
   display: flex;
   flex-direction: column;
   padding: 24px;
+  gap: 16px;
   overflow: hidden;
 }
 
-/* ── Header ── */
-.hdr { text-align: center; margin-bottom: 20px; }
+/* ── Header: small, out of the way ── */
+.hdr { text-align: center; }
 .hdr__row { display: flex; align-items: center; justify-content: center; gap: 8px; }
 .hdr__name {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.18em;
 }
 .hdr__tag {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   background: var(--accent);
   color: var(--bg);
-  padding: 2px 7px;
-  border-radius: 4px;
-  position: relative;
-  top: -1px;
+  padding: 2px 6px;
+  border-radius: 3px;
 }
 .hdr__tz {
-  font-size: 12px;
-  color: var(--gray);
   margin-top: 4px;
+  font-size: 11px;
+  color: var(--dim);
 }
-.hdr__tz b { color: var(--cream); font-weight: 400; }
+.hdr__tz b { color: var(--gray); font-weight: 400; }
 
-/* ── Promo Card ── */
+/* ── Promo: compact status card ── */
 .promo {
-  background: var(--bg-card);
+  background: #1f1e1c;
   border-radius: 10px;
-  padding: 16px 18px;
-  margin-bottom: 18px;
-  border-left: 3px solid var(--green-border);
+  padding: 16px;
 }
-.promo--peak { border-left-color: var(--accent); }
-
+.promo__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
 .promo__status {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--green);
 }
 .promo--peak .promo__status { color: var(--accent); }
-
-.promo__explain {
-  font-size: 11px;
-  color: var(--gray);
-  margin-top: 1px;
-  margin-bottom: 4px;
-}
-
 .promo__countdown {
   font-size: 13px;
-  color: #b5b0a6;
-  margin-bottom: 8px;
+  color: var(--gray);
 }
-
-.promo__next {
+.promo__sub {
   font-size: 11px;
   color: var(--dim);
+  margin-top: 4px;
 }
 
-/* ── Timeline ── */
-.tl { margin-top: 14px; }
+/* ── Timeline: only on weekdays ── */
+.tl { margin-top: 12px; }
 .tl__bar {
-  height: 5px;
+  height: 4px;
   background: rgba(250,249,245,0.06);
-  border-radius: 3px;
+  border-radius: 2px;
   position: relative;
 }
 .tl__seg {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  border-radius: 3px;
+  position: absolute; top: 0; height: 100%; border-radius: 2px;
 }
 .tl__seg--peak { background: rgba(217,119,87,0.45); }
 .tl__seg--off { background: rgba(146,173,99,0.2); }
 .tl__now {
-  position: absolute;
-  top: -4px;
-  width: 3px;
-  height: 13px;
+  position: absolute; top: -3px;
+  width: 3px; height: 10px;
   background: var(--cream);
   border-radius: 2px;
   box-shadow: 0 0 6px rgba(250,249,245,0.5);
   z-index: 2;
 }
 .tl__labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 9px;
-  color: var(--faint);
-  margin-top: 4px;
+  display: flex; justify-content: space-between;
+  margin-top: 4px; font-size: 9px; color: var(--faint);
 }
 
 /* ── Divider ── */
 .divider {
   height: 1px;
   background: rgba(250,249,245,0.06);
-  margin-bottom: 18px;
 }
 
-/* ── Usage ── */
+/* ── Usage: HERO section ── */
 .usage__head {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--dim);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .usage__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 .usage__card {
-  background: var(--bg-card);
-  border: 1px solid var(--bg-card-border);
+  background: #1f1e1c;
   border-radius: 8px;
   padding: 14px;
 }
 .usage__card-label {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--dim);
-  margin-bottom: 6px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
 .usage__val {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--cream);
   line-height: 1;
 }
 .usage__unit {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 400;
   color: var(--gray);
-}
-.usage__sub {
-  font-size: 10px;
-  color: var(--faint);
-  margin-top: 3px;
+  margin-left: 2px;
 }
 .usage__bar {
-  margin-top: 8px;
+  margin-top: 10px;
 }
 .usage__bar-track {
-  height: 4px;
+  height: 6px;
   background: rgba(250,249,245,0.06);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 .usage__bar-fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 3px;
   transition: width 0.3s ease;
 }
 .usage__reset {
   font-size: 9px;
-  color: var(--dim);
+  color: var(--faint);
   margin-top: 6px;
 }
 
