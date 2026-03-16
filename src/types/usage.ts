@@ -1,13 +1,9 @@
 export interface UsageData {
-  session_input_tokens: number;
-  session_output_tokens: number;
-  weekly_input_tokens: number;
-  weekly_output_tokens: number;
-  plan: string | null;
-  message_count_5h: number;
-  message_count_7d: number;
-  session_reset_seconds: number;
-  weekly_reset_seconds: number;
+  five_hour_pct: number;
+  five_hour_resets_at: string | null;
+  seven_day_pct: number;
+  seven_day_resets_at: string | null;
+  extra_usage_enabled: boolean;
 }
 
 export interface PromoStatus {
@@ -16,14 +12,4 @@ export interface PromoStatus {
   label: string;
   timeLeftSeconds: number;
   nextTransitionLabel: string;
-}
-
-export interface AppState {
-  connected: boolean;
-  usage: UsageData | null;
-  promo: PromoStatus;
-  timezone: string;
-  utcOffset: string;
-  lastUpdated: Date | null;
-  error: string | null;
 }

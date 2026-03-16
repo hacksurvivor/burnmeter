@@ -5,25 +5,15 @@ interface Props {
   isStale: boolean;
 }
 
-function fmtTok(t: number): string {
-  if (t >= 1_000_000_000) return (t / 1_000_000_000).toFixed(1);
-  if (t >= 1_000_000) return (t / 1_000_000).toFixed(1);
-  if (t >= 1_000) return (t / 1_000).toFixed(0);
-  return `${t}`;
-}
-
-function tokUnit(t: number): string {
-  if (t >= 1_000_000_000) return "B";
-  if (t >= 1_000_000) return "M";
-  if (t >= 1_000) return "K";
-  return "";
-}
-
-function fmtReset(seconds: number): string {
-  if (seconds <= 0) return "now";
-  const d = Math.floor(seconds / 86400);
-  const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
+function fmtReset(isoDate: string | null): string {
+  if (!isoDate) return "";
+  const resetMs = new Date(isoDate).getTime();
+  const nowMs = Date.now();
+  const diffSec = Math.max(0, Math.floor((resetMs - nowMs) / 1000));
+  if (diffSec <= 0) return "now";
+  const d = Math.floor(diffSec / 86400);
+  const h = Math.floor((diffSec % 86400) / 3600);
+  const m = Math.floor((diffSec % 3600) / 60);
   if (d > 0) return `${d}d ${h}h`;
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
@@ -32,51 +22,54 @@ function fmtReset(seconds: number): string {
 export function UsageLimits({ usage, isStale }: Props) {
   if (!usage) return null;
 
-  const sessionTotal = usage.session_input_tokens + usage.session_output_tokens;
-  const weeklyTotal = usage.weekly_input_tokens + usage.weekly_output_tokens;
-
   return (
     <div className={isStale ? "stale" : ""}>
       <div className="usage__head">Usage</div>
       <div className="usage__grid">
         <Card
           label="5h window"
-          total={sessionTotal}
-          output={usage.session_output_tokens}
-          msgs={usage.message_count_5h}
-          resetIn={usage.session_reset_seconds}
+          pct={usage.five_hour_pct}
+          resetsAt={usage.five_hour_resets_at}
         />
         <Card
           label="7d window"
-          total={weeklyTotal}
-          output={usage.weekly_output_tokens}
-          msgs={usage.message_count_7d}
-          resetIn={usage.weekly_reset_seconds}
+          pct={usage.seven_day_pct}
+          resetsAt={usage.seven_day_resets_at}
         />
       </div>
     </div>
   );
 }
 
-function Card({ label, total, output, msgs, resetIn }: {
+function Card({ label, pct, resetsAt }: {
   label: string;
-  total: number;
-  output: number;
-  msgs: number;
-  resetIn: number;
+  pct: number;
+  resetsAt: string | null;
 }) {
+  const remaining = Math.max(0, 100 - pct);
+  const barColor = remaining > 50
+    ? "var(--green)"
+    : remaining > 20
+    ? "var(--accent)"
+    : "#c05050";
+
   return (
     <div className="usage__card">
       <div className="usage__card-label">{label}</div>
       <div>
-        <span className="usage__val">{fmtTok(total)}</span>
-        <span className="usage__unit">{tokUnit(total)} tok</span>
+        <span className="usage__val">{Math.round(remaining)}</span>
+        <span className="usage__unit">% left</span>
       </div>
-      <div className="usage__sub">
-        {fmtTok(output)}{tokUnit(output)} out · {msgs.toLocaleString()} msgs
+      <div className="usage__bar">
+        <div className="usage__bar-track">
+          <div
+            className="usage__bar-fill"
+            style={{ width: `${remaining}%`, background: barColor }}
+          />
+        </div>
       </div>
       <div className="usage__reset">
-        Resets in {fmtReset(resetIn)}
+        Resets in {fmtReset(resetsAt)}
       </div>
     </div>
   );

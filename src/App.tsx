@@ -34,7 +34,7 @@ export default function App() {
       <div className="divider" />
       <UsageLimits usage={usage} isStale={isStale} />
       <QuickInfo
-        plan={usage?.plan ?? null}
+        plan={null}
         isPromoActive={promo.isPromoActive}
         promoEndDate="Mar 27"
         lastUpdated={lastUpdated}
