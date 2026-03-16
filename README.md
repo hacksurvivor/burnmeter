@@ -28,6 +28,10 @@ macOS · Linux · Windows
 **Prerequisites:** [Rust](https://rustup.rs/), [Node.js](https://nodejs.org/) 20+, [pnpm](https://pnpm.io/), [Claude Code](https://claude.ai/code) (`claude login` required)
 
 ```bash
+# Install Rust if you don't have it
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
 git clone https://github.com/hacksurvivor/burnmeter.git
 cd burnmeter
 pnpm install
