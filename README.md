@@ -1,66 +1,71 @@
+<div align="center">
+
+<img src="src-tauri/icons/icon.png" width="128" alt="Burnmeter icon" />
+
 # Burnmeter
 
-Track your Claude usage and the March 2026 2x promotion — right from your menu bar.
+**Track your Claude usage and the 2x promotion — right from your menu bar.**
 
-## What it does
+macOS · Linux · Windows
 
-- Shows whether you're in **FREE 2x** (off-peak, bonus tokens) or **PEAK** (your plan tokens)
-- Countdown to the next status change
+---
+
+<img src="docs/screenshots/app.png" width="600" alt="Burnmeter screenshot" />
+
+</div>
+
+## Features
+
+- **FREE 2x / PEAK** status with countdown timer
 - Real-time **5-hour** and **7-day** usage percentages from Anthropic's API
-- Automatic timezone detection — shows peak hours in your local time
-- Weekend detection — all day 2x on weekends
-
-## Screenshots
-
-![Menu bar](docs/screenshots/menubar.png)
-
-![Popover](docs/screenshots/popover-cropped.png)
+- Automatic timezone detection — peak hours in your local time
+- Weekend detection — all day 2x bonus on weekends
+- Menu bar shows `🟢 FREE 2x · 84%` or `🟠 PEAK · 84%` at a glance
+- Right-click to quit
 
 ## Install
-
-### From source (macOS / Linux / Windows)
 
 **Prerequisites:** [Rust](https://rustup.rs/), [Node.js](https://nodejs.org/) 20+, [pnpm](https://pnpm.io/), [Claude Code](https://claude.ai/code) (`claude login` required)
 
 ```bash
-git clone https://github.com/anthropics/burnmeter.git
+git clone https://github.com/hacksurvivor/burnmeter.git
 cd burnmeter
 pnpm install
 pnpm tauri build
 ```
 
-**macOS:** DMG at `src-tauri/target/release/bundle/dmg/`
-**Windows:** MSI/NSIS at `src-tauri/target/release/bundle/`
-**Linux:** DEB/AppImage at `src-tauri/target/release/bundle/`
+| Platform | Output |
+|----------|--------|
+| macOS | `src-tauri/target/release/bundle/dmg/` |
+| Windows | `src-tauri/target/release/bundle/msi/` |
+| Linux | `src-tauri/target/release/bundle/deb/` |
 
 ## How it works
 
-1. Reads your Claude Code OAuth token (macOS Keychain / Linux+Windows credentials file) — **read-only, never writes**
-2. Calls `api.anthropic.com/api/oauth/usage` every 60 seconds for real usage percentages
-3. Calculates peak/off-peak windows using IANA timezone `America/Los_Angeles`
+1. Reads your Claude Code OAuth token (macOS Keychain / Linux+Windows credentials file) — **read-only**
+2. Polls `api.anthropic.com/api/oauth/usage` every 60s
+3. Calculates peak/off-peak from IANA `America/Los_Angeles`
 4. Converts to your local timezone automatically
 
 ## Promotion details
 
-**March 13-27, 2026** — Anthropic doubles usage limits during off-peak hours:
-- **Peak (1x):** 5-11 AM Pacific Time, weekdays only
-- **Off-peak (2x):** Everything else, including all weekend hours
-- **Plans:** Free, Pro, Max, Team (Enterprise excluded)
+**March 13–27, 2026** — Anthropic doubles usage during off-peak hours:
+
+| | Hours (Pacific) | Your tokens |
+|---|---|---|
+| **Peak** | 5–11 AM, weekdays | Standard rate |
+| **Off-peak** | Everything else + weekends | 2x bonus |
+
+Eligible: Free, Pro, Max, Team plans.
 
 ## Tech stack
 
-| Component | Choice |
-|-----------|--------|
-| App shell | Tauri v2 |
-| Backend | Rust |
-| Frontend | React + TypeScript |
-| Build | Vite |
-| API | Anthropic OAuth usage endpoint |
+[Tauri v2](https://tauri.app/) · Rust · React · TypeScript · Vite
 
 ## Contributing
 
-PRs welcome. MIT license.
+PRs welcome.
 
 ## License
 
-MIT
+[MIT](LICENSE)
