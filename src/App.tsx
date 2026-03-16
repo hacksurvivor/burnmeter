@@ -7,6 +7,17 @@ import { usePromoStatus } from "./hooks/usePromoStatus";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
 import type { TrayStatus } from "./lib/constants";
+import { PROMO_END, PROMO_TZ } from "./lib/constants";
+
+// Derive promo end date string from the constant, displayed in user's timezone
+const promoEndRaw = new Date(PROMO_END + "Z"); // treat as UTC for parsing
+// Promo ends at 2026-03-28T00:00:00 PT, show the last day (Mar 27)
+const lastPromoDay = new Date(promoEndRaw.getTime() - 86400000); // subtract 1 day
+const promoEndDate = lastPromoDay.toLocaleDateString("en-US", {
+  month: "short",
+  day: "numeric",
+  timeZone: PROMO_TZ,
+});
 
 export default function App() {
   const { usage, error, lastUpdated, isStale } = useUsageData();
@@ -36,7 +47,7 @@ export default function App() {
       <QuickInfo
         plan={null}
         isPromoActive={promo.isPromoActive}
-        promoEndDate="Mar 27"
+        promoEndDate={promoEndDate}
         lastUpdated={lastUpdated}
         error={error}
       />
