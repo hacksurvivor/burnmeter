@@ -4,7 +4,7 @@ use tauri::{
 };
 
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
-    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/icon.png"))
+    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/32x32.png"))
         .expect("failed to load tray icon");
 
     let tray = TrayIconBuilder::with_id("main")
@@ -40,7 +40,7 @@ fn position_window_near_tray(window: &tauri::WebviewWindow) {
         if let Some(monitor) = monitor {
             let screen_size = monitor.size();
             let scale = monitor.scale_factor();
-            let window_width = 380.0;
+            let window_width = 360.0;
             let x = (screen_size.width as f64 / scale) - window_width - 8.0;
             let y = 28.0;
             let _ = window.set_position(tauri::Position::Logical(

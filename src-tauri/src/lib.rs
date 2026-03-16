@@ -9,6 +9,10 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            // Hide dock icon — this is a menu bar-only app
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             tray::create_tray(app.handle())?;
 
             if let Some(window) = app.get_webview_window("main") {
