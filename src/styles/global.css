@@ -229,8 +229,8 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: var(--dim);
+  color: var(--orange);
 }
-.foot__err { color: var(--orange); }
+.foot__err { color: #c05050; }
 
 .stale { opacity: 0.4; }
