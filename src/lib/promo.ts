@@ -1,11 +1,11 @@
-import { PROMO_TZ, PEAK_START_HOUR, PEAK_END_HOUR } from "./constants";
+import type { PromoConfig } from "../types/promo";
 
-function getPTComponents(date: Date): {
+function getComponents(date: Date, timezone: string): {
   year: number; month: number; day: number;
   hour: number; minute: number; dayOfWeek: number;
 } {
   const fmt = new Intl.DateTimeFormat("en-US", {
-    timeZone: PROMO_TZ,
+    timeZone: timezone,
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", hour12: false,
     weekday: "short",
@@ -24,66 +24,62 @@ function getPTComponents(date: Date): {
   };
 }
 
-/**
- * Returns a UTC Date representing the moment when the given PT hour (on the
- * calendar day that is `dayOffset` days after the PT calendar day of `ref`)
- * occurs. Works correctly across PST/PDT transitions.
- */
-function ptDateAtHour(ref: Date, hour: number, dayOffset = 0): Date {
-  const { year, month, day } = getPTComponents(ref);
-
-  // Build a rough UTC estimate: assume PT = UTC-7 (PDT) as a starting point
+function dateAtHour(ref: Date, hour: number, timezone: string, dayOffset = 0): Date {
+  const { year, month, day } = getComponents(ref, timezone);
   const guess = new Date(Date.UTC(year, month - 1, day + dayOffset, hour + 7));
-
-  // Check what hour that actually lands on in PT and correct
-  const check = getPTComponents(guess);
+  const check = getComponents(guess, timezone);
   if (check.hour !== hour) {
     guess.setTime(guess.getTime() + (hour - check.hour) * 3600000);
   }
   return guess;
 }
 
-export function isPromoActive(now: Date): boolean {
-  const { year, month, day } = getPTComponents(now);
+export function isPromoActive(now: Date, config: PromoConfig): boolean {
+  if (!config.active) return false;
+  const { year, month, day } = getComponents(now, config.timezone);
   const dateNum = year * 10000 + month * 100 + day;
-  const startNum = 20260313;
-  const endNum = 20260328;
+  const [sy, sm, sd] = config.start.split("-").map(Number);
+  const [ey, em, ed] = config.end.split("-").map(Number);
+  const startNum = sy * 10000 + sm * 100 + sd;
+  const endNum = ey * 10000 + em * 100 + ed;
   return dateNum >= startNum && dateNum < endNum;
 }
 
-export function isPeak(now: Date): boolean {
-  const { hour, dayOfWeek } = getPTComponents(now);
+export function isPeak(now: Date, config: PromoConfig): boolean {
+  const { hour, dayOfWeek } = getComponents(now, config.timezone);
   const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
-  return isWeekday && hour >= PEAK_START_HOUR && hour < PEAK_END_HOUR;
+  if (config.weekendsOffPeak && !isWeekday) return false;
+  return isWeekday && hour >= config.peakStartHour && hour < config.peakEndHour;
 }
 
-export function getNextTransition(now: Date): Date {
-  const { hour, dayOfWeek } = getPTComponents(now);
+export function getNextTransition(now: Date, config: PromoConfig): Date {
+  const { hour, dayOfWeek } = getComponents(now, config.timezone);
 
-  if (isPeak(now)) {
-    return ptDateAtHour(now, PEAK_END_HOUR);
+  if (isPeak(now, config)) {
+    return dateAtHour(now, config.peakEndHour, config.timezone);
   }
 
   const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
-  if (isWeekday && hour < PEAK_START_HOUR) {
-    return ptDateAtHour(now, PEAK_START_HOUR);
+  if (isWeekday && hour < config.peakStartHour) {
+    return dateAtHour(now, config.peakStartHour, config.timezone);
   }
 
   let daysUntilNextWeekday: number;
-  if (dayOfWeek === 5) daysUntilNextWeekday = 3;       // Friday -> Monday
-  else if (dayOfWeek === 6) daysUntilNextWeekday = 2;  // Saturday -> Monday
-  else if (dayOfWeek === 0) daysUntilNextWeekday = 1;  // Sunday -> Monday
-  else daysUntilNextWeekday = 1;                        // Weekday after peak -> next day
+  if (dayOfWeek === 5) daysUntilNextWeekday = 3;
+  else if (dayOfWeek === 6) daysUntilNextWeekday = 2;
+  else if (dayOfWeek === 0) daysUntilNextWeekday = 1;
+  else daysUntilNextWeekday = 1;
 
-  return ptDateAtHour(now, PEAK_START_HOUR, daysUntilNextWeekday);
+  return dateAtHour(now, config.peakStartHour, config.timezone, daysUntilNextWeekday);
 }
 
 export function getLocalPeakHours(
   userTimezone: string,
-  refDate: Date
+  refDate: Date,
+  config: PromoConfig,
 ): { startHour: number; endHour: number } {
-  const peakStartUTC = ptDateAtHour(refDate, PEAK_START_HOUR);
-  const peakEndUTC = ptDateAtHour(refDate, PEAK_END_HOUR);
+  const peakStartUTC = dateAtHour(refDate, config.peakStartHour, config.timezone);
+  const peakEndUTC = dateAtHour(refDate, config.peakEndHour, config.timezone);
 
   const getHourInTZ = (date: Date, tz: string) => {
     const fmt = new Intl.DateTimeFormat("en-US", {
