@@ -83,10 +83,46 @@ fn platform_read_desktop_token() -> Result<String, String> {
     Err("Claude Desktop credentials not supported on this platform".into())
 }
 
-// Temporary macOS stub — will be replaced with full implementation in Task 3
 #[cfg(target_os = "macos")]
 fn platform_read_desktop_token() -> Result<String, String> {
-    Err("Claude Desktop credentials not yet implemented for macOS".into())
+    use std::process::Command;
+
+    // 1. Read encryption password from Keychain
+    let output = Command::new("security")
+        .args([
+            "find-generic-password",
+            "-s",
+            "Claude Safe Storage",
+            "-a",
+            "Claude Key",
+            "-w",
+        ])
+        .output()
+        .map_err(|e| format!("Failed to run security command: {}", e))?;
+
+    if !output.status.success() {
+        return Err("Claude Desktop keychain entry not found".into());
+    }
+
+    let password = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if password.is_empty() {
+        return Err("Empty Claude Desktop keychain password".into());
+    }
+
+    // 2. Read config.json
+    let home = std::env::var("HOME")
+        .map_err(|_| "HOME environment variable not set".to_string())?;
+    let config_path = std::path::PathBuf::from(&home)
+        .join("Library")
+        .join("Application Support")
+        .join("Claude")
+        .join("config.json");
+
+    let encrypted_b64 = read_config_token_cache(&config_path)?;
+
+    // 3. Decrypt and extract token
+    let decrypted = decrypt_safe_storage(&password, &encrypted_b64)?;
+    extract_token_from_cache(&decrypted)
 }
 
 #[cfg(test)]
