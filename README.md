@@ -18,7 +18,7 @@ macOS · Linux · Windows
 
 ## Download
 
-> **Requires:** [Claude Code](https://claude.ai/code) with `claude login` completed first.
+> **Requires:** [Claude Code](https://claude.ai/code) (run `claude login`) **or** [Claude Desktop](https://claude.ai/download) (just sign in).
 
 | Platform | Download |
 |----------|----------|
@@ -38,7 +38,7 @@ macOS · Linux · Windows
 
 ## How it works
 
-1. Reads your Claude Code OAuth token (macOS Keychain / Linux+Windows credentials file) — **read-only**
+1. Reads your OAuth token from Claude Code **or** Claude Desktop — **read-only**
 2. Polls `api.anthropic.com/api/oauth/usage` every 60s
 3. Calculates peak/off-peak from IANA `America/Los_Angeles`
 4. Converts to your local timezone automatically
