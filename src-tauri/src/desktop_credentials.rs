@@ -251,7 +251,7 @@ fn dpapi_decrypt(data: &[u8]) -> Result<Vec<u8>, String> {
 
     // Free the DPAPI-allocated buffer
     unsafe {
-        windows_sys::Win32::System::Memory::LocalFree(output_blob.pbData as isize);
+        windows_sys::Win32::Foundation::LocalFree(output_blob.pbData as isize);
     }
 
     Ok(result)
