@@ -3,11 +3,18 @@ use std::fs;
 #[cfg(not(target_os = "macos"))]
 use std::path::PathBuf;
 
-/// Read the Claude Code OAuth token.
-/// Platform-specific: macOS Keychain, Linux/Windows credentials file.
+/// Read the Claude OAuth token.
+/// Tries Claude Code credentials first, then Claude Desktop app.
 pub fn read_oauth_token() -> Result<String, String> {
-    let raw = platform_read_credentials()?;
-    parse_token(&raw)
+    // Try Claude Code first (existing behavior)
+    if let Ok(raw) = platform_read_credentials() {
+        if let Ok(token) = parse_token(&raw) {
+            return Ok(token);
+        }
+    }
+
+    // Fall back to Claude Desktop app
+    crate::desktop_credentials::read_desktop_token()
 }
 
 /// Parse the token from raw credential data (JSON or bare token).
