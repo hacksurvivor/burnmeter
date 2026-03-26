@@ -1,6 +1,6 @@
 [package]
 name = "claude-x2-tracker"
-version = "0.1.0"
+version = "0.2.0"
 description = "Claude X2 Tracker - macOS menu bar app for Claude usage tracking"
 authors = ["Claude X2 Contributors"]
 edition = "2021"
