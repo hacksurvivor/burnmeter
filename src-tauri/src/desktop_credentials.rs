@@ -1,5 +1,4 @@
 use base64::Engine;
-use serde_json;
 
 /// Extract the first OAuth access token from decrypted token cache JSON.
 ///
@@ -23,9 +22,16 @@ fn extract_token_from_cache(json_str: &str) -> Result<String, String> {
     Err("No token found in Desktop token cache".into())
 }
 
+// Chromium uses 1003 PBKDF2 iterations on macOS, 1 on Linux.
+#[cfg(target_os = "macos")]
+const PBKDF2_ITERATIONS: u32 = 1003;
+
+#[cfg(target_os = "linux")]
+const PBKDF2_ITERATIONS: u32 = 1;
+
 /// Decrypt Chromium safeStorage encrypted data (macOS/Linux).
 ///
-/// Algorithm: PBKDF2-HMAC-SHA1(password, "saltysalt", 1003) -> AES-128-CBC(iv=spaces).
+/// Algorithm: PBKDF2-HMAC-SHA1(password, "saltysalt", iterations) -> AES-128-CBC(iv=spaces).
 #[cfg(not(target_os = "windows"))]
 fn decrypt_safe_storage(password: &str, encrypted_b64: &str) -> Result<String, String> {
     use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
@@ -44,7 +50,7 @@ fn decrypt_safe_storage(password: &str, encrypted_b64: &str) -> Result<String, S
 
     // Derive key: PBKDF2-HMAC-SHA1
     let mut key = [0u8; 16];
-    pbkdf2::pbkdf2_hmac::<sha1::Sha1>(password.as_bytes(), b"saltysalt", 1003, &mut key);
+    pbkdf2::pbkdf2_hmac::<sha1::Sha1>(password.as_bytes(), b"saltysalt", PBKDF2_ITERATIONS, &mut key);
 
     // Decrypt: AES-128-CBC, IV = 16 spaces
     let iv = [0x20u8; 16];

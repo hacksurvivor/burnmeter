@@ -6,15 +6,10 @@ use std::path::PathBuf;
 /// Read the Claude OAuth token.
 /// Tries Claude Code credentials first, then Claude Desktop app.
 pub fn read_oauth_token() -> Result<String, String> {
-    // Try Claude Code first (existing behavior)
-    if let Ok(raw) = platform_read_credentials() {
-        if let Ok(token) = parse_token(&raw) {
-            return Ok(token);
-        }
+    match platform_read_credentials() {
+        Ok(raw) => parse_token(&raw), // Found credentials — parse or fail (don't silently fall back)
+        Err(_) => crate::desktop_credentials::read_desktop_token(), // Not found — try Desktop
     }
-
-    // Fall back to Claude Desktop app
-    crate::desktop_credentials::read_desktop_token()
 }
 
 /// Parse the token from raw credential data (JSON or bare token).
