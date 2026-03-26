@@ -125,6 +125,132 @@ fn platform_read_desktop_token() -> Result<String, String> {
     extract_token_from_cache(&decrypted)
 }
 
+#[cfg(target_os = "linux")]
+fn platform_read_desktop_token() -> Result<String, String> {
+    use std::process::Command;
+
+    // 1. Read encryption password — try GNOME Keyring, fall back to "peanuts"
+    let password = Command::new("secret-tool")
+        .args(["lookup", "application", "claude"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "peanuts".to_string());
+
+    // 2. Read config.json
+    let home = std::env::var("HOME")
+        .map_err(|_| "HOME environment variable not set".to_string())?;
+
+    let config_paths = [
+        std::path::PathBuf::from(&home)
+            .join(".config")
+            .join("Claude")
+            .join("config.json"),
+        std::path::PathBuf::from(&home)
+            .join(".config")
+            .join("claude")
+            .join("config.json"),
+    ];
+
+    let encrypted_b64 = config_paths
+        .iter()
+        .find_map(|p| read_config_token_cache(p).ok())
+        .ok_or("Claude Desktop config not found on Linux")?;
+
+    // 3. Decrypt and extract token
+    let decrypted = decrypt_safe_storage(&password, &encrypted_b64)?;
+    extract_token_from_cache(&decrypted)
+}
+
+#[cfg(target_os = "windows")]
+fn platform_read_desktop_token() -> Result<String, String> {
+    use base64::Engine;
+
+    // 1. Read config.json
+    let appdata = std::env::var("APPDATA")
+        .or_else(|_| std::env::var("LOCALAPPDATA"))
+        .map_err(|_| "APPDATA environment variable not set".to_string())?;
+
+    let config_paths = [
+        std::path::PathBuf::from(&appdata)
+            .join("Claude")
+            .join("config.json"),
+        std::path::PathBuf::from(&appdata)
+            .join("claude")
+            .join("config.json"),
+    ];
+
+    let encrypted_b64 = config_paths
+        .iter()
+        .find_map(|p| read_config_token_cache(p).ok())
+        .ok_or("Claude Desktop config not found on Windows")?;
+
+    // 2. Base64 decode and strip DPAPI prefix
+    let raw = base64::engine::general_purpose::STANDARD
+        .decode(&encrypted_b64)
+        .map_err(|e| format!("Base64 decode error: {}", e))?;
+
+    // Strip "v10" prefix if present
+    let ciphertext = if raw.len() > 3 && &raw[..3] == b"v10" {
+        &raw[3..]
+    } else {
+        &raw
+    };
+
+    // 3. Decrypt via DPAPI
+    let plaintext = dpapi_decrypt(ciphertext)?;
+    let json_str = String::from_utf8(plaintext)
+        .map_err(|e| format!("Decrypted data is not valid UTF-8: {}", e))?;
+
+    extract_token_from_cache(&json_str)
+}
+
+#[cfg(target_os = "windows")]
+fn dpapi_decrypt(data: &[u8]) -> Result<Vec<u8>, String> {
+    use windows_sys::Win32::Security::Cryptography::{
+        CryptUnprotectData, CRYPT_INTEGER_BLOB,
+    };
+
+    let mut input_blob = CRYPT_INTEGER_BLOB {
+        cbData: data.len() as u32,
+        pbData: data.as_ptr() as *mut u8,
+    };
+
+    let mut output_blob = CRYPT_INTEGER_BLOB {
+        cbData: 0,
+        pbData: std::ptr::null_mut(),
+    };
+
+    let success = unsafe {
+        CryptUnprotectData(
+            &mut input_blob,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            0,
+            &mut output_blob,
+        )
+    };
+
+    if success == 0 {
+        return Err("DPAPI CryptUnprotectData failed".into());
+    }
+
+    let result =
+        unsafe { std::slice::from_raw_parts(output_blob.pbData, output_blob.cbData as usize) }
+            .to_vec();
+
+    // Free the DPAPI-allocated buffer
+    unsafe {
+        windows_sys::Win32::System::Memory::LocalFree(output_blob.pbData as isize);
+    }
+
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
