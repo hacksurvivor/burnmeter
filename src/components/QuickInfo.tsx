@@ -1,5 +1,4 @@
 interface Props {
-  plan: string | null;
   isPromoActive: boolean;
   promoEndDate: string;
   lastUpdated: Date | null;
@@ -18,7 +17,7 @@ export function QuickInfo({ isPromoActive, promoEndDate, lastUpdated, error }: P
           <>{dayName} · {lastUpdated.toLocaleTimeString()}</>
         ) : null}
       </span>
-      <span>{isPromoActive ? `Ends ${promoEndDate}` : ""}</span>
+      <span>{isPromoActive && promoEndDate ? `Ends ${promoEndDate}` : ""}</span>
     </div>
   );
 }

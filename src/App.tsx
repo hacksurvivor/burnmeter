@@ -4,17 +4,16 @@ import { UsageLimits } from "./components/UsageLimits";
 import { QuickInfo } from "./components/QuickInfo";
 import { useUsageData } from "./hooks/useUsageData";
 import { usePromoStatus } from "./hooks/usePromoStatus";
+import { usePromoConfig } from "./hooks/usePromoConfig";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
 import type { TrayStatus } from "./lib/constants";
 
-// Promo ends 2026-03-28T00:00:00 PT (exclusive), last active day is Mar 27
-const promoEndDate = "Mar 27";
-
 export default function App() {
   const { usage, error, lastUpdated, isStale } = useUsageData();
-  const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour, isWeekend } =
-    usePromoStatus();
+  const config = usePromoConfig();
+  const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour, isWeekend, promoEndDate } =
+    usePromoStatus(config);
 
   useEffect(() => {
     let status: TrayStatus;
@@ -38,7 +37,6 @@ export default function App() {
       <div className="divider" />
       <UsageLimits usage={usage} isStale={isStale} />
       <QuickInfo
-        plan={null}
         isPromoActive={promo.isPromoActive}
         promoEndDate={promoEndDate}
         lastUpdated={lastUpdated}
