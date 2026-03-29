@@ -69,14 +69,23 @@ fn position_window_near_tray(window: &tauri::WebviewWindow) {
 }
 
 #[tauri::command]
-pub fn update_tray_status(app: AppHandle, status: String, pct: Option<u32>) -> Result<(), String> {
-    let pct_str = pct.map(|p| format!(" · {}%", p)).unwrap_or_default();
+pub fn update_tray_status(
+    app: AppHandle,
+    status: String,
+    five_hour_pct: Option<u32>,
+    seven_day_pct: Option<u32>,
+) -> Result<(), String> {
+    let pct_str = match (five_hour_pct, seven_day_pct) {
+        (Some(h), Some(d)) => format!(" {}·{}", h, d),
+        (Some(h), None) => format!(" {}", h),
+        _ => String::new(),
+    };
 
     let title = match status.as_str() {
-        "green" => format!("🟢 FREE 2x{}", pct_str),
-        "orange" => format!("🟠 PEAK{}", pct_str),
-        "gray" => "⚪ Burnmeter".to_string(),
-        _ => "Burnmeter".to_string(),
+        "green" => format!("🟢{}", pct_str),
+        "orange" => format!("🟠{}", pct_str),
+        "gray" => "⚪".to_string(),
+        _ => "⚪".to_string(),
     };
 
     if let Some(tray) = app.tray_by_id("main") {
