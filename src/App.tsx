@@ -20,8 +20,9 @@ export default function App() {
     if (!promo.isPromoActive) status = "gray";
     else if (promo.isPeak) status = "orange";
     else status = "green";
-    const pct = usage ? Math.round(100 - usage.five_hour_pct) : null;
-    invoke("update_tray_status", { status, pct }).catch(() => {});
+    const fiveHourPct = usage ? Math.round(100 - usage.five_hour_pct) : null;
+    const sevenDayPct = usage ? Math.round(100 - usage.seven_day_pct) : null;
+    invoke("update_tray_status", { status, fiveHourPct, sevenDayPct }).catch(() => {});
   }, [promo.isPromoActive, promo.isPeak, usage]);
 
   return (
