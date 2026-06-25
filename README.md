@@ -12,7 +12,7 @@ macOS · Linux · Windows
 
 ---
 
-<img src="docs/screenshots/app.png" width="600" alt="Burnmeter screenshot" />
+<img src="docs/screenshots/app-compact-2026-06-25.png" width="600" alt="Burnmeter compact provider card screenshot" />
 
 </div>
 
