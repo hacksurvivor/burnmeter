@@ -123,12 +123,12 @@ function ProviderRow({
     ? isConnected
       ? "Connected"
       : errorState ?? "Needs login"
-    : "Planned";
+    : "Connect";
   const stateClass = isConnected
     ? "settings__state--ok"
     : errorState === "Offline" || errorState === "Error"
     ? "settings__state--bad"
-    : provider.available
+    : provider.available || !isConnected
     ? "settings__state--warn"
     : "";
 
