@@ -76,19 +76,18 @@ export default function App() {
   );
 }
 
-function traySummary(usage: UsageData): { title: string; tooltip: string } | null {
+export function traySummary(usage: UsageData): { title: string; tooltip: string } | null {
   if (usage.providers.length === 0) return null;
 
   const providers = usage.providers.map((provider) => {
     const fiveHour = remainingPercent(provider.five_hour_pct);
     const sevenDay = remainingPercent(provider.seven_day_pct);
-    const tightest = Math.min(fiveHour, sevenDay);
-    return { provider, fiveHour, sevenDay, tightest };
+    return { provider, fiveHour, sevenDay };
   });
-  const tightestProvider = providers.reduce((lowest, current) =>
-    current.tightest < lowest.tightest ? current : lowest,
+  const lowestFiveHourProvider = providers.reduce((lowest, current) =>
+    current.fiveHour < lowest.fiveHour ? current : lowest,
   );
-  const title = `${tightestProvider.tightest}%`;
+  const title = `${lowestFiveHourProvider.fiveHour}%`;
   const tooltip = providers
     .map(({ provider, fiveHour, sevenDay }) => {
       const label = trayProviderLabel(provider.provider, provider.label);

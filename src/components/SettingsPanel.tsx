@@ -1,4 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { invoke } from "@tauri-apps/api/core";
 import type { UsageData, UsageError } from "../types/usage";
 import {
   providerErrorDetail,
@@ -24,7 +25,7 @@ export const PROVIDERS: ProviderConfig[] = [
     authLabel: "OAuth subscription",
     command: "claude login",
     connectUrl: null,
-    actionLabel: "Connect",
+    actionLabel: "Login",
     available: true,
   },
   {
@@ -33,7 +34,7 @@ export const PROVIDERS: ProviderConfig[] = [
     authLabel: "ChatGPT subscription",
     command: "codex login",
     connectUrl: null,
-    actionLabel: "Connect",
+    actionLabel: "Login",
     available: true,
   },
 ];
@@ -92,7 +93,8 @@ function ProviderRow({
 }) {
   const errorState = error ? providerErrorState(error.message) : null;
   const state = isConnected ? "Connected" : provider.available ? errorState ?? "Needs login" : "Connect";
-  const showState = state !== "Connect" && (isConnected || Boolean(error));
+  const needsLogin = state === "Needs login";
+  const showState = state !== "Connect" && !needsLogin && (isConnected || Boolean(error));
   const stateClass = isConnected
     ? "settings__state--ok"
     : errorState === "Offline" || errorState === "Error"
@@ -120,6 +122,7 @@ function ProviderRow({
           <span className={`settings__state ${stateClass}`}>{state}</span>
         ) : (
           <ConnectAction
+            providerId={provider.id}
             isConnected={isConnected}
             command={provider.command}
             connectUrl={provider.connectUrl}
@@ -133,12 +136,14 @@ function ProviderRow({
 }
 
 function ConnectAction({
+  providerId,
   isConnected,
   command,
   connectUrl,
   actionLabel,
   providerLabel,
 }: {
+  providerId: string;
   isConnected: boolean;
   command: string | null;
   connectUrl: string | null;
@@ -149,17 +154,16 @@ function ConnectAction({
 
   return (
     <div className="settings__connect">
-      {command ? <code className="settings__command">{command}</code> : null}
       <button
         className="settings__connect-btn"
         onClick={() => {
           if (command) {
-            copyCommand(command);
+            openProviderCommand(providerId, command);
             return;
           }
           if (connectUrl) openProviderLogin(connectUrl);
         }}
-        title={command ? `Copy ${providerLabel} login command` : `Open ${providerLabel} login`}
+        title={command ? `Open ${providerLabel} login in Terminal` : `Open ${providerLabel} login`}
       >
         {actionLabel}
       </button>
@@ -167,8 +171,10 @@ function ConnectAction({
   );
 }
 
-function copyCommand(command: string) {
-  navigator.clipboard?.writeText(command).catch(() => {});
+function openProviderCommand(providerId: string, command: string) {
+  invoke("open_provider_login", { provider: providerId }).catch(() => {
+    navigator.clipboard?.writeText(command).catch(() => {});
+  });
 }
 
 function openProviderLogin(url: string) {

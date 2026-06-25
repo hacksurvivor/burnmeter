@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::process::Command;
 
 use crate::activity::ActivitySummary;
 
@@ -190,4 +191,71 @@ pub async fn get_usage() -> Result<UsageResponse, String> {
     }
 
     Ok(UsageResponse { providers, errors })
+}
+
+#[tauri::command]
+pub fn open_provider_login(provider: String) -> Result<(), String> {
+    let command = match provider.as_str() {
+        "claude" => "claude login",
+        "codex" => "codex login",
+        _ => return Err(format!("Unsupported provider login: {}", provider)),
+    };
+
+    open_login_terminal(command)
+}
+
+#[cfg(target_os = "macos")]
+fn open_login_terminal(command: &str) -> Result<(), String> {
+    let script = format!(
+        "tell application \"Terminal\" to do script {}",
+        applescript_string(command)
+    );
+
+    Command::new("osascript")
+        .args(["-e", &script, "-e", "tell application \"Terminal\" to activate"])
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| format!("Failed to open Terminal: {}", e))
+}
+
+#[cfg(target_os = "windows")]
+fn open_login_terminal(command: &str) -> Result<(), String> {
+    Command::new("cmd")
+        .args(["/C", "start", "Burnmeter Login", "cmd", "/K", command])
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| format!("Failed to open Command Prompt: {}", e))
+}
+
+#[cfg(target_os = "linux")]
+fn open_login_terminal(command: &str) -> Result<(), String> {
+    let command = shell_single_quote(&format!("{}; exec sh", command));
+    let script = format!(
+        "x-terminal-emulator -e sh -lc {0} || \
+         gnome-terminal -- sh -lc {0} || \
+         konsole -e sh -lc {0} || \
+         xterm -e sh -lc {0}",
+        command
+    );
+
+    Command::new("sh")
+        .args(["-lc", &script])
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| format!("Failed to open terminal: {}", e))
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+fn open_login_terminal(_command: &str) -> Result<(), String> {
+    Err("Provider login is not supported on this platform".to_string())
+}
+
+#[cfg(target_os = "macos")]
+fn applescript_string(value: &str) -> String {
+    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+#[cfg(target_os = "linux")]
+fn shell_single_quote(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }

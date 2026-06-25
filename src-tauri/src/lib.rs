@@ -32,6 +32,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             keychain::check_auth,
             api::get_usage,
+            api::open_provider_login,
             tray::update_tray_status,
         ])
         .run(tauri::generate_context!())
