@@ -13,6 +13,7 @@ export type ProviderConfig = {
   authLabel: string;
   command: string | null;
   connectUrl: string | null;
+  actionLabel: string;
   available: boolean;
 };
 
@@ -23,6 +24,7 @@ export const PROVIDERS: ProviderConfig[] = [
     authLabel: "OAuth subscription",
     command: "claude login",
     connectUrl: null,
+    actionLabel: "Connect",
     available: true,
   },
   {
@@ -31,6 +33,7 @@ export const PROVIDERS: ProviderConfig[] = [
     authLabel: "ChatGPT subscription",
     command: "codex login",
     connectUrl: null,
+    actionLabel: "Connect",
     available: true,
   },
   {
@@ -39,6 +42,7 @@ export const PROVIDERS: ProviderConfig[] = [
     authLabel: "Google subscription",
     command: null,
     connectUrl: "https://gemini.google.com/",
+    actionLabel: "Open Gemini",
     available: false,
   },
   {
@@ -46,7 +50,8 @@ export const PROVIDERS: ProviderConfig[] = [
     label: "Grok",
     authLabel: "xAI subscription",
     command: null,
-    connectUrl: "https://grok.com/",
+    connectUrl: "https://accounts.x.ai/sign-in?redirect=grok-com",
+    actionLabel: "Link X",
     available: false,
   },
   {
@@ -54,7 +59,8 @@ export const PROVIDERS: ProviderConfig[] = [
     label: "Cursor",
     authLabel: "Cursor subscription",
     command: null,
-    connectUrl: "https://cursor.com/",
+    connectUrl: "https://cursor.com/dashboard",
+    actionLabel: "Dashboard",
     available: false,
   },
   {
@@ -63,6 +69,7 @@ export const PROVIDERS: ProviderConfig[] = [
     authLabel: "Moonshot AI subscription",
     command: null,
     connectUrl: "https://www.kimi.com/en",
+    actionLabel: "Open Kimi",
     available: false,
   },
   {
@@ -70,7 +77,8 @@ export const PROVIDERS: ProviderConfig[] = [
     label: "GLM",
     authLabel: "Z.ai subscription",
     command: null,
-    connectUrl: "https://z.ai/chat",
+    connectUrl: "https://z.ai/subscribe",
+    actionLabel: "Open plan",
     available: false,
   },
 ];
@@ -160,6 +168,7 @@ function ProviderRow({
             isConnected={isConnected}
             command={provider.command}
             connectUrl={provider.connectUrl}
+            actionLabel={provider.actionLabel}
             providerLabel={provider.label}
           />
         )}
@@ -172,11 +181,13 @@ function ConnectAction({
   isConnected,
   command,
   connectUrl,
+  actionLabel,
   providerLabel,
 }: {
   isConnected: boolean;
   command: string | null;
   connectUrl: string | null;
+  actionLabel: string;
   providerLabel: string;
 }) {
   if (isConnected || (!command && !connectUrl)) return null;
@@ -195,7 +206,7 @@ function ConnectAction({
         }}
         title={command ? `Copy ${providerLabel} login command` : `Open ${providerLabel} login`}
       >
-        Connect
+        {actionLabel}
       </button>
     </div>
   );
