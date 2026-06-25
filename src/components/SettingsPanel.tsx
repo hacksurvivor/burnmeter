@@ -1,3 +1,4 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import type { UsageData, UsageError } from "../types/usage";
 import {
   providerErrorDetail,
@@ -6,20 +7,22 @@ import {
 } from "../lib/usageErrors";
 import { ProviderLogo } from "./ProviderLogo";
 
-type ProviderConfig = {
+export type ProviderConfig = {
   id: string;
   label: string;
   authLabel: string;
   command: string | null;
+  connectUrl: string | null;
   available: boolean;
 };
 
-const PROVIDERS: ProviderConfig[] = [
+export const PROVIDERS: ProviderConfig[] = [
   {
     id: "claude",
     label: "Claude",
     authLabel: "OAuth subscription",
     command: "claude login",
+    connectUrl: null,
     available: true,
   },
   {
@@ -27,6 +30,7 @@ const PROVIDERS: ProviderConfig[] = [
     label: "Codex",
     authLabel: "ChatGPT subscription",
     command: "codex login",
+    connectUrl: null,
     available: true,
   },
   {
@@ -34,6 +38,7 @@ const PROVIDERS: ProviderConfig[] = [
     label: "Gemini",
     authLabel: "Google subscription",
     command: null,
+    connectUrl: "https://gemini.google.com/",
     available: false,
   },
   {
@@ -41,6 +46,7 @@ const PROVIDERS: ProviderConfig[] = [
     label: "Grok",
     authLabel: "xAI subscription",
     command: null,
+    connectUrl: "https://grok.com/",
     available: false,
   },
   {
@@ -48,6 +54,7 @@ const PROVIDERS: ProviderConfig[] = [
     label: "Cursor",
     authLabel: "Cursor subscription",
     command: null,
+    connectUrl: "https://cursor.com/",
     available: false,
   },
   {
@@ -55,6 +62,7 @@ const PROVIDERS: ProviderConfig[] = [
     label: "Kimi K2",
     authLabel: "Moonshot AI subscription",
     command: null,
+    connectUrl: "https://www.kimi.com/en",
     available: false,
   },
   {
@@ -62,6 +70,7 @@ const PROVIDERS: ProviderConfig[] = [
     label: "GLM",
     authLabel: "Z.ai subscription",
     command: null,
+    connectUrl: "https://z.ai/chat",
     available: false,
   },
 ];
@@ -119,11 +128,7 @@ function ProviderRow({
   error: UsageError | undefined;
 }) {
   const errorState = error ? providerErrorState(error.message) : null;
-  const state = provider.available
-    ? isConnected
-      ? "Connected"
-      : errorState ?? "Needs login"
-    : "Connect";
+  const state = isConnected ? "Connected" : provider.available ? errorState ?? "Needs login" : "Connect";
   const stateClass = isConnected
     ? "settings__state--ok"
     : errorState === "Offline" || errorState === "Error"
@@ -143,7 +148,12 @@ function ProviderRow({
         <div className="settings__provider-meta">
           {plan ? `${provider.authLabel} · ${plan}` : provider.authLabel}
         </div>
-        <ConnectAction isConnected={isConnected} command={provider.command} />
+        <ConnectAction
+          isConnected={isConnected}
+          command={provider.command}
+          connectUrl={provider.connectUrl}
+          providerLabel={provider.label}
+        />
         {!isConnected && error ? (
           <div className="settings__error">
             {providerErrorTitle(error.message)} · {providerErrorDetail(provider.id, error.message)}
@@ -157,16 +167,30 @@ function ProviderRow({
 function ConnectAction({
   isConnected,
   command,
+  connectUrl,
+  providerLabel,
 }: {
   isConnected: boolean;
   command: string | null;
+  connectUrl: string | null;
+  providerLabel: string;
 }) {
-  if (isConnected || !command) return null;
+  if (isConnected || (!command && !connectUrl)) return null;
 
   return (
     <div className="settings__connect">
-      <code className="settings__command">{command}</code>
-      <button className="settings__connect-btn" onClick={() => copyCommand(command)}>
+      {command ? <code className="settings__command">{command}</code> : null}
+      <button
+        className="settings__connect-btn"
+        onClick={() => {
+          if (command) {
+            copyCommand(command);
+            return;
+          }
+          if (connectUrl) openProviderLogin(connectUrl);
+        }}
+        title={command ? `Copy ${providerLabel} login command` : `Open ${providerLabel} login`}
+      >
         Connect
       </button>
     </div>
@@ -175,4 +199,10 @@ function ConnectAction({
 
 function copyCommand(command: string) {
   navigator.clipboard?.writeText(command).catch(() => {});
+}
+
+function openProviderLogin(url: string) {
+  openUrl(url).catch(() => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  });
 }
