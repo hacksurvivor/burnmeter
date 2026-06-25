@@ -37,7 +37,7 @@ jobs:
     env:
       HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_CERTIFICATE_PASSWORD != '' && secrets.KEYCHAIN_PASSWORD != '' }}
       HAS_APPLE_ID_NOTARIZATION: ${{ secrets.APPLE_ID != '' && secrets.APPLE_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
-      HAS_APPLE_API_NOTARIZATION: ${{ secrets.APPLE_API_KEY != '' && secrets.APPLE_API_ISSUER != '' && (secrets.APPLE_API_KEY_P8 != '' || secrets.APPLE_API_KEY_BASE64 != '') }}
+      HAS_APPLE_API_NOTARIZATION: ${{ secrets.APPLE_API_KEY != '' && secrets.APPLE_API_ISSUER != '' && secrets.APPLE_TEAM_ID != '' && (secrets.APPLE_API_KEY_P8 != '' || secrets.APPLE_API_KEY_BASE64 != '') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -155,7 +155,7 @@ jobs:
           echo "macOS releases require Developer ID signing plus Apple notarization secrets."
           echo "Add APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, KEYCHAIN_PASSWORD, and either:"
           echo "- APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID"
-          echo "- APPLE_API_KEY, APPLE_API_ISSUER, APPLE_API_KEY_P8 or APPLE_API_KEY_BASE64"
+          echo "- APPLE_API_KEY, APPLE_API_ISSUER, APPLE_TEAM_ID, and APPLE_API_KEY_P8 or APPLE_API_KEY_BASE64"
           exit 1
 
       - name: Build
