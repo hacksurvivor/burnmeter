@@ -347,11 +347,6 @@ body {
   overflow: visible;
   object-fit: contain;
 }
-.provider-logo--grok,
-.provider-logo--cursor {
-  filter: brightness(0) invert(1);
-  opacity: 0.92;
-}
 .provider-logo--fallback {
   display: grid;
   place-items: center;
