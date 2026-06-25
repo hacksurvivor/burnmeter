@@ -299,6 +299,52 @@ pub fn open_provider_login(provider: String) -> Result<(), String> {
     open_login_terminal(command)
 }
 
+#[tauri::command]
+pub fn detect_running_provider_apps() -> Vec<String> {
+    let mut running = Vec::new();
+
+    if is_process_running(&["Claude", "claude"]) {
+        running.push("Claude".to_string());
+    }
+    if is_process_running(&["Codex", "codex"]) {
+        running.push("Codex".to_string());
+    }
+
+    running
+}
+
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+fn is_process_running(names: &[&str]) -> bool {
+    names.iter().any(|name| {
+        Command::new("pgrep")
+            .args(["-x", name])
+            .status()
+            .map(|status| status.success())
+            .unwrap_or(false)
+    })
+}
+
+#[cfg(target_os = "windows")]
+fn is_process_running(names: &[&str]) -> bool {
+    names.iter().any(|name| {
+        let image_name = format!("{}.exe", name);
+        Command::new("tasklist")
+            .args(["/FI", &format!("IMAGENAME eq {}", image_name)])
+            .output()
+            .map(|output| {
+                String::from_utf8_lossy(&output.stdout)
+                    .to_ascii_lowercase()
+                    .contains(&image_name.to_ascii_lowercase())
+            })
+            .unwrap_or(false)
+    })
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+fn is_process_running(_names: &[&str]) -> bool {
+    false
+}
+
 #[cfg(target_os = "macos")]
 fn open_login_terminal(command: &str) -> Result<(), String> {
     let script = format!(
@@ -307,7 +353,12 @@ fn open_login_terminal(command: &str) -> Result<(), String> {
     );
 
     Command::new("osascript")
-        .args(["-e", &script, "-e", "tell application \"Terminal\" to activate"])
+        .args([
+            "-e",
+            &script,
+            "-e",
+            "tell application \"Terminal\" to activate",
+        ])
         .spawn()
         .map(|_| ())
         .map_err(|e| format!("Failed to open Terminal: {}", e))

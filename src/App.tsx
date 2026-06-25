@@ -7,15 +7,24 @@ import { useUsageData } from "./hooks/useUsageData";
 import { usePromoStatus } from "./hooks/usePromoStatus";
 import { usePromoConfig } from "./hooks/usePromoConfig";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { useEffect, useState } from "react";
 import type { TrayStatus } from "./lib/constants";
 import type { UpdateInfo, UsageData } from "./types/usage";
+
+const OPEN_ON_PROVIDER_KEY = "burnmeter.openWhenProviderStarts";
 
 export default function App() {
   const { usage, error, isStale, retry } = useUsageData();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [launchAtLogin, setLaunchAtLogin] = useState<boolean | null>(null);
+  const [launchSettingsError, setLaunchSettingsError] = useState<string | null>(null);
+  const [openWhenProviderStarts, setOpenWhenProviderStarts] = useState(() => {
+    return window.localStorage.getItem(OPEN_ON_PROVIDER_KEY) === "true";
+  });
   const config = usePromoConfig();
   const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour, isWeekend, promoEndDate } =
     usePromoStatus(config);
@@ -55,6 +64,69 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    isEnabled()
+      .then((enabled) => {
+        if (!cancelled) {
+          setLaunchAtLogin(enabled);
+          setLaunchSettingsError(null);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) setLaunchSettingsError(String(error));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(OPEN_ON_PROVIDER_KEY, String(openWhenProviderStarts));
+  }, [openWhenProviderStarts]);
+
+  useEffect(() => {
+    if (!openWhenProviderStarts) return;
+
+    let cancelled = false;
+    let providersWereRunning = false;
+    const appWindow = getCurrentWindow();
+
+    const poll = () => {
+      invoke<string[]>("detect_running_provider_apps")
+        .then(async (providers) => {
+          if (cancelled) return;
+
+          const providersRunning = providers.length > 0;
+          if (providersRunning && !providersWereRunning) {
+            await appWindow.show();
+            await appWindow.setFocus();
+          }
+          providersWereRunning = providersRunning;
+        })
+        .catch(() => {});
+    };
+
+    poll();
+    const timer = window.setInterval(poll, 12_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [openWhenProviderStarts]);
+
+  const setLaunchAtLoginEnabled = async (enabled: boolean) => {
+    setLaunchSettingsError(null);
+    try {
+      if (enabled) await enable();
+      else await disable();
+      setLaunchAtLogin(enabled);
+    } catch (error) {
+      setLaunchSettingsError(String(error));
+    }
+  };
+
   return (
     <div className="app dark">
       <Header
@@ -75,6 +147,11 @@ export default function App() {
             usage={usage}
             updateInfo={updateInfo}
             updateError={updateError}
+            launchAtLogin={launchAtLogin}
+            launchSettingsError={launchSettingsError}
+            openWhenProviderStarts={openWhenProviderStarts}
+            onLaunchAtLoginChange={setLaunchAtLoginEnabled}
+            onOpenWhenProviderStartsChange={setOpenWhenProviderStarts}
             onClose={() => setSettingsOpen(false)}
           />
         </div>

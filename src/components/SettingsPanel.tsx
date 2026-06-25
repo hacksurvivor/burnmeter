@@ -43,10 +43,25 @@ interface Props {
   usage: UsageData | null;
   updateInfo: UpdateInfo | null;
   updateError: string | null;
+  launchAtLogin: boolean | null;
+  launchSettingsError: string | null;
+  openWhenProviderStarts: boolean;
+  onLaunchAtLoginChange: (enabled: boolean) => Promise<void>;
+  onOpenWhenProviderStartsChange: (enabled: boolean) => void;
   onClose: () => void;
 }
 
-export function SettingsPanel({ usage, updateInfo, updateError, onClose }: Props) {
+export function SettingsPanel({
+  usage,
+  updateInfo,
+  updateError,
+  launchAtLogin,
+  launchSettingsError,
+  openWhenProviderStarts,
+  onLaunchAtLoginChange,
+  onOpenWhenProviderStartsChange,
+  onClose,
+}: Props) {
   const connected = new Map(
     usage?.providers.map((provider) => [provider.provider, provider]) ?? [],
   );
@@ -69,6 +84,14 @@ export function SettingsPanel({ usage, updateInfo, updateError, onClose }: Props
 
       <UpdateRow updateInfo={updateInfo} updateError={updateError} />
 
+      <LaunchOptions
+        launchAtLogin={launchAtLogin}
+        launchSettingsError={launchSettingsError}
+        openWhenProviderStarts={openWhenProviderStarts}
+        onLaunchAtLoginChange={onLaunchAtLoginChange}
+        onOpenWhenProviderStartsChange={onOpenWhenProviderStartsChange}
+      />
+
       <div className="settings__list">
         {PROVIDERS.map((provider) => (
           <ProviderRow
@@ -81,6 +104,74 @@ export function SettingsPanel({ usage, updateInfo, updateError, onClose }: Props
         ))}
       </div>
     </aside>
+  );
+}
+
+function LaunchOptions({
+  launchAtLogin,
+  launchSettingsError,
+  openWhenProviderStarts,
+  onLaunchAtLoginChange,
+  onOpenWhenProviderStartsChange,
+}: {
+  launchAtLogin: boolean | null;
+  launchSettingsError: string | null;
+  openWhenProviderStarts: boolean;
+  onLaunchAtLoginChange: (enabled: boolean) => Promise<void>;
+  onOpenWhenProviderStartsChange: (enabled: boolean) => void;
+}) {
+  return (
+    <div className="settings__launch">
+      <ToggleRow
+        title="Open at login"
+        detail="Start Burnmeter when macOS starts."
+        checked={launchAtLogin ?? false}
+        disabled={launchAtLogin === null}
+        onChange={onLaunchAtLoginChange}
+      />
+      <ToggleRow
+        title="Wake with Claude or Codex"
+        detail="Show the panel when either app starts."
+        checked={openWhenProviderStarts}
+        onChange={(enabled) => {
+          onOpenWhenProviderStartsChange(enabled);
+          return Promise.resolve();
+        }}
+      />
+      {launchSettingsError ? <div className="settings__launch-error">{launchSettingsError}</div> : null}
+    </div>
+  );
+}
+
+function ToggleRow({
+  title,
+  detail,
+  checked,
+  disabled = false,
+  onChange,
+}: {
+  title: string;
+  detail: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (enabled: boolean) => Promise<void>;
+}) {
+  return (
+    <label className={`settings__toggle-row${disabled ? " settings__toggle-row--disabled" : ""}`}>
+      <span>
+        <span className="settings__toggle-title">{title}</span>
+        <span className="settings__toggle-detail">{detail}</span>
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => {
+          onChange(event.currentTarget.checked).catch(() => {});
+        }}
+      />
+      <span className="settings__switch" aria-hidden="true" />
+    </label>
   );
 }
 
