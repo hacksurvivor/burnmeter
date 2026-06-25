@@ -129,7 +129,7 @@ function ProviderRow({
 }) {
   const errorState = error ? providerErrorState(error.message) : null;
   const state = isConnected ? "Connected" : provider.available ? errorState ?? "Needs login" : "Connect";
-  const showState = state !== "Connect";
+  const showState = state !== "Connect" && (isConnected || Boolean(error));
   const stateClass = isConnected
     ? "settings__state--ok"
     : errorState === "Offline" || errorState === "Error"
@@ -140,26 +140,29 @@ function ProviderRow({
 
   return (
     <div className="settings__row">
-      <div className="settings__provider">
-        <div className="settings__provider-name">
-          <ProviderLogo label={provider.label} provider={provider.id} />
-          <span>{provider.label}</span>
-          {showState ? <span className={`settings__state ${stateClass}`}>{state}</span> : null}
-        </div>
+      <ProviderLogo label={provider.label} provider={provider.id} />
+      <div className="settings__provider-copy">
+        <div className="settings__provider-name">{provider.label}</div>
         <div className="settings__provider-meta">
           {plan ? `${provider.authLabel} · ${plan}` : provider.authLabel}
         </div>
-        <ConnectAction
-          isConnected={isConnected}
-          command={provider.command}
-          connectUrl={provider.connectUrl}
-          providerLabel={provider.label}
-        />
         {!isConnected && error ? (
           <div className="settings__error">
             {providerErrorTitle(error.message)} · {providerErrorDetail(provider.id, error.message)}
           </div>
         ) : null}
+      </div>
+      <div className="settings__provider-action">
+        {showState ? (
+          <span className={`settings__state ${stateClass}`}>{state}</span>
+        ) : (
+          <ConnectAction
+            isConnected={isConnected}
+            command={provider.command}
+            connectUrl={provider.connectUrl}
+            providerLabel={provider.label}
+          />
+        )}
       </div>
     </div>
   );
@@ -179,7 +182,7 @@ function ConnectAction({
   if (isConnected || (!command && !connectUrl)) return null;
 
   return (
-    <div className={`settings__connect${command ? "" : " settings__connect--centered"}`}>
+    <div className="settings__connect">
       {command ? <code className="settings__command">{command}</code> : null}
       <button
         className="settings__connect-btn"

@@ -321,18 +321,23 @@ body {
   overflow: visible;
 }
 .settings__row {
-  padding: 16px 0;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 14px;
+  min-height: 96px;
+  padding: 18px 0;
   background: transparent;
   border-top: 1px solid var(--line);
 }
 .settings__provider-name {
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  align-items: center;
-  gap: 12px;
   color: var(--cream);
   font-size: 15px;
   font-weight: 700;
+  line-height: 1.15;
+}
+.settings__provider-copy {
+  min-width: 0;
 }
 .provider-logo {
   display: block;
@@ -370,18 +375,19 @@ body {
 .settings__provider-meta {
   color: var(--dim);
   font-size: 13px;
-  margin-top: 4px;
-  margin-left: 56px;
+  line-height: 1.25;
+  margin-top: 12px;
+}
+.settings__provider-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 112px;
 }
 .settings__connect {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
-  margin-left: 56px;
-}
-.settings__connect--centered {
-  justify-content: center;
 }
 .settings__command {
   display: inline-block;
@@ -412,7 +418,7 @@ body {
   color: #c05050;
   font-size: 12px;
   margin-top: 7px;
-  margin-left: 56px;
+  line-height: 1.35;
 }
 
 /* ── Promo ── */
