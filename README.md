@@ -18,19 +18,23 @@ macOS · Linux · Windows
 
 ## Download
 
-> **Note:** packaged releases may lag behind `main`. Build from source for the newest Claude + Codex UI.
-
 Burnmeter reads local subscription sessions. Sign in with the tools you use:
 
 - [Claude Code](https://claude.ai/code) with `claude login`, or [Claude Desktop](https://claude.ai/download)
 - [Codex CLI](https://developers.openai.com/codex) with `codex login`
 
-| Platform | Download |
-|----------|----------|
-| macOS (Apple Silicon) | [`.dmg`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
-| macOS (Intel) | [`.dmg`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
-| Windows | [`.msi`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
-| Linux | [`.deb` / `.AppImage`](https://github.com/hacksurvivor/burnmeter/releases/latest) |
+Open the [latest release](https://github.com/hacksurvivor/burnmeter/releases/latest) and choose:
+
+| Platform | Pick this asset |
+|----------|-----------------|
+| macOS Apple Silicon (M1/M2/M3/M4) | `Burnmeter-...-macOS-Apple-Silicon.dmg` |
+| macOS Intel | `Burnmeter-...-macOS-Intel.dmg` |
+| Windows x64 | `Burnmeter-...-Windows-x64-setup.exe` |
+| Linux x64 AppImage | `Burnmeter-...-Linux-x64.AppImage` |
+| Linux x64 Debian/Ubuntu | `Burnmeter-...-Linux-x64.deb` |
+| Linux x64 Fedora/RHEL | `Burnmeter-...-Linux-x64.rpm` |
+
+The macOS `auto-update.app.tar.gz` assets are for updater clients, not normal manual installs.
 
 ## Features
 

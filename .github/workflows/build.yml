@@ -15,19 +15,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
+          - name: macOS Apple Silicon
+            platform: macos-latest
             args: '--target aarch64-apple-darwin'
             rust_target: aarch64-apple-darwin
-          - platform: macos-latest
+          - name: macOS Intel
+            platform: macos-latest
             args: '--target x86_64-apple-darwin'
             rust_target: x86_64-apple-darwin
-          - platform: ubuntu-22.04
+          - name: Linux x64
+            platform: ubuntu-22.04
             args: ''
             rust_target: ''
-          - platform: windows-latest
+          - name: Windows x64
+            platform: windows-latest
             args: ''
             rust_target: ''
 
+    name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -71,3 +76,59 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  normalize-release-assets:
+    name: Normalize release assets
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Rename assets and update release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          version="${TAG#v}"
+
+          rename_asset() {
+            local from="$1"
+            local to="$2"
+            local id
+
+            id="$(gh api "repos/$REPO/releases/tags/$TAG" \
+              --jq ".assets[] | select(.name == \"$from\") | .id" | head -n 1)"
+
+            if [ -n "$id" ]; then
+              gh api -X PATCH "repos/$REPO/releases/assets/$id" -f name="$to" >/dev/null
+            fi
+          }
+
+          rename_asset "Burnmeter_${version}_aarch64.dmg" "Burnmeter-${TAG}-macOS-Apple-Silicon.dmg"
+          rename_asset "Burnmeter_${version}_x64.dmg" "Burnmeter-${TAG}-macOS-Intel.dmg"
+          rename_asset "Burnmeter_aarch64.app.tar.gz" "Burnmeter-${TAG}-macOS-Apple-Silicon-auto-update.app.tar.gz"
+          rename_asset "Burnmeter_x64.app.tar.gz" "Burnmeter-${TAG}-macOS-Intel-auto-update.app.tar.gz"
+          rename_asset "Burnmeter_${version}_amd64.AppImage" "Burnmeter-${TAG}-Linux-x64.AppImage"
+          rename_asset "Burnmeter_${version}_amd64.deb" "Burnmeter-${TAG}-Linux-x64.deb"
+          rename_asset "Burnmeter-${version}-1.x86_64.rpm" "Burnmeter-${TAG}-Linux-x64.rpm"
+          rename_asset "Burnmeter_${version}_x64-setup.exe" "Burnmeter-${TAG}-Windows-x64-setup.exe"
+          rename_asset "Burnmeter_${version}_x64_en-US.msi" "Burnmeter-${TAG}-Windows-x64.msi"
+
+          cat > release-notes.md <<EOF
+          Download the installer for your platform below.
+
+          Recommended downloads:
+
+          - macOS Apple Silicon (M1/M2/M3/M4): Burnmeter-${TAG}-macOS-Apple-Silicon.dmg
+          - macOS Intel: Burnmeter-${TAG}-macOS-Intel.dmg
+          - Windows x64: Burnmeter-${TAG}-Windows-x64-setup.exe
+          - Linux x64 AppImage: Burnmeter-${TAG}-Linux-x64.AppImage
+          - Linux x64 Debian/Ubuntu: Burnmeter-${TAG}-Linux-x64.deb
+          - Linux x64 Fedora/RHEL: Burnmeter-${TAG}-Linux-x64.rpm
+
+          The macOS .app.tar.gz files are for auto-update clients, not the normal manual install path.
+          EOF
+
+          gh release edit "$TAG" --notes-file release-notes.md
