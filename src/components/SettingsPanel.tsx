@@ -129,6 +129,7 @@ function ProviderRow({
 }) {
   const errorState = error ? providerErrorState(error.message) : null;
   const state = isConnected ? "Connected" : provider.available ? errorState ?? "Needs login" : "Connect";
+  const showState = state !== "Connect";
   const stateClass = isConnected
     ? "settings__state--ok"
     : errorState === "Offline" || errorState === "Error"
@@ -143,7 +144,7 @@ function ProviderRow({
         <div className="settings__provider-name">
           <ProviderLogo label={provider.label} provider={provider.id} />
           <span>{provider.label}</span>
-          <span className={`settings__state ${stateClass}`}>{state}</span>
+          {showState ? <span className={`settings__state ${stateClass}`}>{state}</span> : null}
         </div>
         <div className="settings__provider-meta">
           {plan ? `${provider.authLabel} · ${plan}` : provider.authLabel}
@@ -178,7 +179,7 @@ function ConnectAction({
   if (isConnected || (!command && !connectUrl)) return null;
 
   return (
-    <div className="settings__connect">
+    <div className={`settings__connect${command ? "" : " settings__connect--centered"}`}>
       {command ? <code className="settings__command">{command}</code> : null}
       <button
         className="settings__connect-btn"
