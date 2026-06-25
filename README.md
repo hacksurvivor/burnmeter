@@ -4,7 +4,7 @@
 
 # Burnmeter
 
-**Track your Claude and Codex usage limits — right from your menu bar.**
+**Track Claude, Codex, and future LLM subscription limits from one compact desktop panel.**
 
 macOS · Linux · Windows
 
@@ -18,7 +18,12 @@ macOS · Linux · Windows
 
 ## Download
 
-> **Requires:** [Claude Code](https://claude.ai/code) (run `claude login`), [Claude Desktop](https://claude.ai/download) (just sign in), or [Codex CLI](https://developers.openai.com/codex) (run `codex login`).
+> **Note:** packaged releases may lag behind `main`. Build from source for the newest multi-provider UI.
+
+Burnmeter reads local subscription sessions. Sign in with the tools you use:
+
+- [Claude Code](https://claude.ai/code) with `claude login`, or [Claude Desktop](https://claude.ai/download)
+- [Codex CLI](https://developers.openai.com/codex) with `codex login`
 
 | Platform | Download |
 |----------|----------|
@@ -29,33 +34,27 @@ macOS · Linux · Windows
 
 ## Features
 
-- **FREE 2x / PEAK** status with countdown timer
-- Real-time **5-hour** and **7-day** usage percentages for Claude and Codex
-- Provider-specific boost tracking for off-peak promos, reset credits, and extra limits
-- Local token activity heatmaps with lifetime, peak, task, and streak stats
-- Automatic timezone detection — peak hours in your local time
-- Weekend detection — all day 2x bonus on weekends
-- Menu bar shows compact provider limits like `Cl 84·91 Cd 72·88`
-- Right-click to quit
+- Real-time **5-hour** and **7-day** subscription windows for Claude and Codex
+- Collapsible provider cards so multiple subscriptions fit in the same panel
+- Provider-specific boost tracking for off-peak promos, reset credits, and higher temporary limits
+- Local token activity heatmaps with lifetime usage, peak day, longest task, and streak stats
+- Settings panel for connected, missing, limited, or offline providers
+- Menu bar status summarizing the tightest remaining provider limit
+- Support for future LLM providers without redesigning the main view
 
 ## How it works
 
-1. Reads your local OAuth tokens from Claude Code, Claude Desktop, or Codex CLI — **read-only**
-2. Polls Anthropic and Codex usage endpoints every 60s
-3. Aggregates local Claude Code and Codex session history for token activity
-4. Calculates peak/off-peak from IANA `America/Los_Angeles`
-5. Converts to your local timezone automatically
+1. Reads local OAuth/subscription credentials from Claude Code, Claude Desktop, or Codex CLI — **read-only**
+2. Polls provider usage endpoints every 60 seconds
+3. Keeps failed or disconnected providers in Settings instead of crowding the main page
+4. Aggregates local Claude and Codex history for activity heatmaps
+5. Shows reset times, extra usage windows, and active provider boosts in your local timezone
 
-## Promotion details
+## Extra Usage Windows
 
-**March 13–27, 2026** — Anthropic doubles usage during off-peak hours:
+Some providers expose temporary higher limits, reset credits, or off-peak multipliers. Burnmeter models those as provider boosts so the main usage card can show both the normal limits and any extra capacity currently available.
 
-| | Hours (Pacific) | Your tokens |
-|---|---|---|
-| **Peak** | 5–11 AM, weekdays | Standard rate |
-| **Off-peak** | Everything else + weekends | 2x bonus |
-
-Eligible: Free, Pro, Max, Team plans.
+Claude off-peak periods, Codex model-specific limits, and future provider promotions should all appear in the same boost area when available from the provider or local history.
 
 ## Tech stack
 
