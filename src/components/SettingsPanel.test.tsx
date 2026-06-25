@@ -16,18 +16,21 @@ describe("provider settings", () => {
 
   it("opens official account and setup entry points for external providers", () => {
     expect(PROVIDERS.find((provider) => provider.id === "gemini")?.connectUrl).toBe(
-      "https://gemini.google.com/",
+      "https://gemini.google.com/app",
     );
     expect(PROVIDERS.find((provider) => provider.id === "grok")?.connectUrl).toBe(
-      "https://accounts.x.ai/sign-in?redirect=grok-com",
+      "https://x.ai/news/grok-build-cli",
     );
-    expect(PROVIDERS.find((provider) => provider.id === "grok")?.actionLabel).toBe("Link X");
+    expect(PROVIDERS.find((provider) => provider.id === "grok")?.actionLabel).toBe("CLI");
     expect(PROVIDERS.find((provider) => provider.id === "cursor")?.connectUrl).toBe(
       "https://cursor.com/dashboard",
     );
+    expect(PROVIDERS.find((provider) => provider.id === "cursor")?.actionLabel).toBe("Usage");
     expect(PROVIDERS.find((provider) => provider.id === "kimi")?.connectUrl).toBe(
-      "https://www.kimi.com/en",
+      "https://moonshotai.github.io/kimi-cli/en/guides/getting-started.html",
     );
-    expect(PROVIDERS.find((provider) => provider.id === "glm")?.connectUrl).toBe("https://z.ai/subscribe");
+    expect(PROVIDERS.find((provider) => provider.id === "glm")?.connectUrl).toBe(
+      "https://docs.z.ai/devpack/quick-start",
+    );
   });
 });
