@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PROVIDERS } from "./SettingsPanel";
+import { renderToStaticMarkup } from "react-dom/server";
+import { PROVIDERS, SettingsPanel } from "./SettingsPanel";
 
 describe("provider settings", () => {
   it("only includes providers with live in-app usage meters", () => {
@@ -18,5 +19,24 @@ describe("provider settings", () => {
   it("keeps native usage providers on local OAuth commands", () => {
     expect(PROVIDERS.find((provider) => provider.id === "claude")?.command).toBe("claude login");
     expect(PROVIDERS.find((provider) => provider.id === "codex")?.command).toBe("codex login");
+  });
+
+  it("places update and launch controls below the provider list", () => {
+    const html = renderToStaticMarkup(
+      <SettingsPanel
+        usage={null}
+        updateInfo={null}
+        updateError={null}
+        launchAtLogin={false}
+        launchSettingsError={null}
+        openWhenProviderStarts={false}
+        onLaunchAtLoginChange={() => Promise.resolve()}
+        onOpenWhenProviderStartsChange={() => {}}
+        onClose={() => {}}
+      />,
+    );
+
+    expect(html.indexOf("Claude")).toBeLessThan(html.indexOf("Updates"));
+    expect(html.indexOf("Codex")).toBeLessThan(html.indexOf("Open at login"));
   });
 });

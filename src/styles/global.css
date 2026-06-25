@@ -331,6 +331,9 @@ body {
   border-radius: 0;
   overflow: visible;
 }
+.settings__utility {
+  margin-top: 4px;
+}
 .settings__update {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

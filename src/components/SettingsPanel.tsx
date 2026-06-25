@@ -82,16 +82,6 @@ export function SettingsPanel({
         </button>
       </div>
 
-      <UpdateRow updateInfo={updateInfo} updateError={updateError} />
-
-      <LaunchOptions
-        launchAtLogin={launchAtLogin}
-        launchSettingsError={launchSettingsError}
-        openWhenProviderStarts={openWhenProviderStarts}
-        onLaunchAtLoginChange={onLaunchAtLoginChange}
-        onOpenWhenProviderStartsChange={onOpenWhenProviderStartsChange}
-      />
-
       <div className="settings__list">
         {PROVIDERS.map((provider) => (
           <ProviderRow
@@ -102,6 +92,18 @@ export function SettingsPanel({
             error={errors.get(provider.id)}
           />
         ))}
+      </div>
+
+      <div className="settings__utility">
+        <UpdateRow updateInfo={updateInfo} updateError={updateError} />
+
+        <LaunchOptions
+          launchAtLogin={launchAtLogin}
+          launchSettingsError={launchSettingsError}
+          openWhenProviderStarts={openWhenProviderStarts}
+          onLaunchAtLoginChange={onLaunchAtLoginChange}
+          onOpenWhenProviderStartsChange={onOpenWhenProviderStartsChange}
+        />
       </div>
     </aside>
   );
