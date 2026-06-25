@@ -7,11 +7,12 @@ export function ConnectScreen({ onRetry }: ConnectScreenProps) {
     <div className="connect-screen crt crt--flicker">
       <pre className="connect-screen__box glow-orange">
 {`╔══════════════════════════════════╗
-║  CONNECT TO CLAUDE               ║
+║  CONNECT A PROVIDER              ║
 ║                                  ║
-║  Run in your terminal:           ║
+║  Run one of these commands:      ║
 ║                                  ║
 ║  $ claude login                  ║
+║  $ codex login                   ║
 ║                                  ║
 ╚══════════════════════════════════╝`}
       </pre>

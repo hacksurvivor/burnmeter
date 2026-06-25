@@ -4,7 +4,7 @@
 
 # Burnmeter
 
-**Track your Claude usage and the 2x promotion — right from your menu bar.**
+**Track your Claude and Codex usage limits — right from your menu bar.**
 
 macOS · Linux · Windows
 
@@ -18,7 +18,7 @@ macOS · Linux · Windows
 
 ## Download
 
-> **Requires:** [Claude Code](https://claude.ai/code) (run `claude login`) **or** [Claude Desktop](https://claude.ai/download) (just sign in).
+> **Requires:** [Claude Code](https://claude.ai/code) (run `claude login`), [Claude Desktop](https://claude.ai/download) (just sign in), or [Codex CLI](https://developers.openai.com/codex) (run `codex login`).
 
 | Platform | Download |
 |----------|----------|
@@ -30,18 +30,21 @@ macOS · Linux · Windows
 ## Features
 
 - **FREE 2x / PEAK** status with countdown timer
-- Real-time **5-hour** and **7-day** usage percentages from Anthropic's API
+- Real-time **5-hour** and **7-day** usage percentages for Claude and Codex
+- Provider-specific boost tracking for off-peak promos, reset credits, and extra limits
+- Local token activity heatmaps with lifetime, peak, task, and streak stats
 - Automatic timezone detection — peak hours in your local time
 - Weekend detection — all day 2x bonus on weekends
-- Menu bar shows `🟢 FREE 2x · 84%` or `🟠 PEAK · 84%` at a glance
+- Menu bar shows compact provider limits like `Cl 84·91 Cd 72·88`
 - Right-click to quit
 
 ## How it works
 
-1. Reads your OAuth token from Claude Code **or** Claude Desktop — **read-only**
-2. Polls `api.anthropic.com/api/oauth/usage` every 60s
-3. Calculates peak/off-peak from IANA `America/Los_Angeles`
-4. Converts to your local timezone automatically
+1. Reads your local OAuth tokens from Claude Code, Claude Desktop, or Codex CLI — **read-only**
+2. Polls Anthropic and Codex usage endpoints every 60s
+3. Aggregates local Claude Code and Codex session history for token activity
+4. Calculates peak/off-peak from IANA `America/Los_Angeles`
+5. Converts to your local timezone automatically
 
 ## Promotion details
 

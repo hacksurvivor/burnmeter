@@ -73,13 +73,20 @@ fn platform_read_credentials() -> Result<String, String> {
 
 #[cfg(target_os = "linux")]
 fn platform_read_credentials() -> Result<String, String> {
-    let home = std::env::var("HOME")
-        .map_err(|_| "HOME environment variable not set".to_string())?;
+    let home =
+        std::env::var("HOME").map_err(|_| "HOME environment variable not set".to_string())?;
 
     let paths = [
-        PathBuf::from(&home).join(".claude").join(".credentials.json"),
-        PathBuf::from(&home).join(".claude").join("credentials.json"),
-        PathBuf::from(&home).join(".config").join("claude-code").join("credentials.json"),
+        PathBuf::from(&home)
+            .join(".claude")
+            .join(".credentials.json"),
+        PathBuf::from(&home)
+            .join(".claude")
+            .join("credentials.json"),
+        PathBuf::from(&home)
+            .join(".config")
+            .join("claude-code")
+            .join("credentials.json"),
     ];
 
     for path in &paths {
@@ -97,13 +104,19 @@ fn platform_read_credentials() -> Result<String, String> {
 
 #[cfg(target_os = "windows")]
 fn platform_read_credentials() -> Result<String, String> {
-    let appdata = std::env::var("APPDATA")
-        .map_err(|_| "APPDATA environment variable not set".to_string())?;
+    let appdata =
+        std::env::var("APPDATA").map_err(|_| "APPDATA environment variable not set".to_string())?;
 
     let paths = [
-        PathBuf::from(&appdata).join("claude").join("credentials.json"),
-        PathBuf::from(&appdata).join("claude").join(".credentials.json"),
-        PathBuf::from(&appdata).join("claude-code").join("credentials.json"),
+        PathBuf::from(&appdata)
+            .join("claude")
+            .join("credentials.json"),
+        PathBuf::from(&appdata)
+            .join("claude")
+            .join(".credentials.json"),
+        PathBuf::from(&appdata)
+            .join("claude-code")
+            .join("credentials.json"),
     ];
 
     for path in &paths {

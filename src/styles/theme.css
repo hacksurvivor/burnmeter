@@ -1,15 +1,20 @@
 :root {
-  /* Claude's full palette — each color has a JOB */
-  --bg: #1c1b19;              /* warm dark base */
-  --bg-card: #252422;         /* elevated cards */
+  /* Burnmeter palette — each color has a job */
+  --bg: #101416;              /* dark app shell */
+  --bg-soft: #151a1e;         /* low surface */
+  --bg-card: #1b2126;         /* elevated cards */
+  --bg-strong: #242a31;       /* controls */
 
-  --orange: #d97757;          /* brand accent, warnings, peak */
-  --blue: #6a9bcc;            /* data, info, numbers */
-  --green: #96b46e;           /* good state, healthy, off-peak */
+  --orange: #ff7f5c;          /* brand accent, warnings, peak */
+  --blue: #66a3ff;            /* data, info, numbers */
+  --green: #8fd16a;           /* good state, healthy, off-peak */
   --cream: #faf9f5;           /* primary text */
-  --mid-gray: #b0aea5;        /* secondary text */
-  --light-gray: #e8e6dc;      /* subtle borders */
-  --dim: #6a6862;             /* tertiary text */
+  --mid-gray: #b8c0c8;        /* secondary text */
+  --light-gray: #dbe2ea;      /* subtle borders */
+  --dim: #8b96a3;             /* tertiary text */
+  --line: rgba(219,226,234,0.1);
+  --line-strong: rgba(219,226,234,0.18);
 
   --font: "JetBrains Mono", "SF Mono", monospace;
+  --ui-font: "Geist Variable", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

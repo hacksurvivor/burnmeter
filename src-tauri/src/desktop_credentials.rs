@@ -50,7 +50,12 @@ fn decrypt_safe_storage(password: &str, encrypted_b64: &str) -> Result<String, S
 
     // Derive key: PBKDF2-HMAC-SHA1
     let mut key = [0u8; 16];
-    pbkdf2::pbkdf2_hmac::<sha1::Sha1>(password.as_bytes(), b"saltysalt", PBKDF2_ITERATIONS, &mut key);
+    pbkdf2::pbkdf2_hmac::<sha1::Sha1>(
+        password.as_bytes(),
+        b"saltysalt",
+        PBKDF2_ITERATIONS,
+        &mut key,
+    );
 
     // Decrypt: AES-128-CBC, IV = 16 spaces
     let iv = [0x20u8; 16];
@@ -116,8 +121,8 @@ fn platform_read_desktop_token() -> Result<String, String> {
     }
 
     // 2. Read config.json
-    let home = std::env::var("HOME")
-        .map_err(|_| "HOME environment variable not set".to_string())?;
+    let home =
+        std::env::var("HOME").map_err(|_| "HOME environment variable not set".to_string())?;
     let config_path = std::path::PathBuf::from(&home)
         .join("Library")
         .join("Application Support")
@@ -146,8 +151,8 @@ fn platform_read_desktop_token() -> Result<String, String> {
         .unwrap_or_else(|| "peanuts".to_string());
 
     // 2. Read config.json
-    let home = std::env::var("HOME")
-        .map_err(|_| "HOME environment variable not set".to_string())?;
+    let home =
+        std::env::var("HOME").map_err(|_| "HOME environment variable not set".to_string())?;
 
     let config_paths = [
         std::path::PathBuf::from(&home)
@@ -215,9 +220,7 @@ fn platform_read_desktop_token() -> Result<String, String> {
 
 #[cfg(target_os = "windows")]
 fn dpapi_decrypt(data: &[u8]) -> Result<Vec<u8>, String> {
-    use windows_sys::Win32::Security::Cryptography::{
-        CryptUnprotectData, CRYPT_INTEGER_BLOB,
-    };
+    use windows_sys::Win32::Security::Cryptography::{CryptUnprotectData, CRYPT_INTEGER_BLOB};
 
     let mut input_blob = CRYPT_INTEGER_BLOB {
         cbData: data.len() as u32,

@@ -1,4 +1,6 @@
+mod activity;
 mod api;
+mod codex;
 mod desktop_credentials;
 mod keychain;
 mod tray;

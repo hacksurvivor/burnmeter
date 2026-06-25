@@ -8,13 +8,12 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
     let quit = MenuItem::with_id(app, "quit", "Quit Burnmeter", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&quit])?;
 
-    // 1x1 transparent pixel — we only show text in the tray
     let transparent: &[u8] = &[0, 0, 0, 0];
     let icon = tauri::image::Image::new(transparent, 1, 1);
 
     let mut builder = TrayIconBuilder::with_id("main")
         .icon(icon)
-        .title("×2")
+        .title("LLM")
         .tooltip("Burnmeter")
         .menu(&menu)
         .show_menu_on_left_click(false)
@@ -61,9 +60,8 @@ fn position_window_near_tray(window: &tauri::WebviewWindow) {
             let window_width = 380.0;
             let x = (screen_size.width as f64 / scale) - window_width - 8.0;
             let y = 28.0;
-            let _ = window.set_position(tauri::Position::Logical(
-                tauri::LogicalPosition::new(x, y),
-            ));
+            let _ =
+                window.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(x, y)));
         }
     }
 }
@@ -72,24 +70,30 @@ fn position_window_near_tray(window: &tauri::WebviewWindow) {
 pub fn update_tray_status(
     app: AppHandle,
     status: String,
-    five_hour_pct: Option<u32>,
-    seven_day_pct: Option<u32>,
+    summary: Option<String>,
+    tooltip: Option<String>,
 ) -> Result<(), String> {
-    let pct_str = match (five_hour_pct, seven_day_pct) {
-        (Some(h), Some(d)) => format!(" {}·{}", h, d),
-        (Some(h), None) => format!(" {}", h),
-        _ => String::new(),
-    };
+    let title = summary
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| "LLM".to_string());
 
-    let title = match status.as_str() {
-        "green" => format!("🟢{}", pct_str),
-        "orange" => format!("🟠{}", pct_str),
-        "gray" => "⚪".to_string(),
-        _ => "⚪".to_string(),
+    let status_label = match status.as_str() {
+        "green" => "Off-peak boost active",
+        "orange" => "Peak window",
+        "gray" => "Standard limits",
+        _ => "Usage status",
     };
+    let tooltip = tooltip
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .map(|value| format!("Burnmeter\n{}\n{}", status_label, value))
+        .unwrap_or_else(|| format!("Burnmeter\n{}", status_label));
 
     if let Some(tray) = app.tray_by_id("main") {
         tray.set_title(Some(&title)).map_err(|e| e.to_string())?;
+        tray.set_tooltip(Some(&tooltip))
+            .map_err(|e| e.to_string())?;
     }
     Ok(())
 }

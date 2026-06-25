@@ -1,23 +1,20 @@
 interface Props {
   isPromoActive: boolean;
   promoEndDate: string;
-  lastUpdated: Date | null;
   error: string | null;
 }
 
-export function QuickInfo({ isPromoActive, promoEndDate, lastUpdated, error }: Props) {
-  const dayName = new Date().toLocaleDateString("en-US", { weekday: "short" });
+export function QuickInfo({ isPromoActive, promoEndDate, error }: Props) {
+  const promoText = isPromoActive && promoEndDate ? `Ends ${promoEndDate}` : "";
+
+  if (!error && !promoText) return null;
 
   return (
     <div className="foot">
       <span>
-        {error ? (
-          <span className="foot__err">{error}</span>
-        ) : lastUpdated ? (
-          <>{dayName} · {lastUpdated.toLocaleTimeString()}</>
-        ) : null}
+        {error ? <span className="foot__err">{error}</span> : null}
       </span>
-      <span>{isPromoActive && promoEndDate ? `Ends ${promoEndDate}` : ""}</span>
+      <span>{promoText}</span>
     </div>
   );
 }

@@ -17,7 +17,7 @@ export function PromoTimer({ promo, peakStartLocal, peakEndLocal, currentHour, i
     <div className={`promo ${isPeak ? "promo--peak" : ""}`}>
       <div className="promo__row">
         <span className="promo__status">
-          {isPeak ? "PEAK" : "OFF-PEAK 2x"}
+          {isPeak ? "CLAUDE PEAK" : "CLAUDE OFF-PEAK 2x"}
         </span>
         <span className="promo__countdown">{fmt(timeLeftSeconds)}</span>
       </div>
