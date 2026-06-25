@@ -149,6 +149,15 @@ jobs:
             echo "macOS notarization disabled; add Apple notarization secrets before cutting a public release."
           fi
 
+      - name: Require notarized macOS release configuration
+        if: runner.os == 'macOS' && (env.HAS_APPLE_CERTIFICATE != 'true' || (env.HAS_APPLE_ID_NOTARIZATION != 'true' && env.HAS_APPLE_API_NOTARIZATION != 'true'))
+        run: |
+          echo "macOS releases require Developer ID signing plus Apple notarization secrets."
+          echo "Add APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, KEYCHAIN_PASSWORD, and either:"
+          echo "- APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID"
+          echo "- APPLE_API_KEY, APPLE_API_ISSUER, APPLE_API_KEY_P8 or APPLE_API_KEY_BASE64"
+          exit 1
+
       - name: Build
         uses: tauri-apps/tauri-action@v0
         env:
