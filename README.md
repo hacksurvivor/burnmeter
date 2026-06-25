@@ -4,7 +4,7 @@
 
 # Burnmeter
 
-**Track Claude, Codex, and future LLM subscription limits from one compact desktop panel.**
+**Track Claude and Codex subscription limits from one compact desktop panel.**
 
 macOS · Linux · Windows
 
@@ -18,7 +18,7 @@ macOS · Linux · Windows
 
 ## Download
 
-> **Note:** packaged releases may lag behind `main`. Build from source for the newest multi-provider UI.
+> **Note:** packaged releases may lag behind `main`. Build from source for the newest Claude + Codex UI.
 
 Burnmeter reads local subscription sessions. Sign in with the tools you use:
 
@@ -38,23 +38,22 @@ Burnmeter reads local subscription sessions. Sign in with the tools you use:
 - Collapsible provider cards so multiple subscriptions fit in the same panel
 - Provider-specific boost tracking for off-peak promos, reset credits, and higher temporary limits
 - Local token activity heatmaps with lifetime usage, peak day, longest task, and streak stats
-- Settings panel for connected, missing, limited, or offline providers
+- Settings panel for connected, missing, limited, or offline Claude/Codex accounts
 - Menu bar status summarizing the tightest remaining provider limit
-- Support for future LLM providers without redesigning the main view
 
 ## How it works
 
 1. Reads local OAuth/subscription credentials from Claude Code, Claude Desktop, or Codex CLI — **read-only**
 2. Polls provider usage endpoints every 60 seconds
-3. Keeps failed or disconnected providers in Settings instead of crowding the main page
+3. Keeps failed or disconnected Claude/Codex accounts in Settings instead of crowding the main page
 4. Aggregates local Claude and Codex history for activity heatmaps
 5. Shows reset times, extra usage windows, and active provider boosts in your local timezone
 
 ## Extra Usage Windows
 
-Some providers expose temporary higher limits, reset credits, or off-peak multipliers. Burnmeter models those as provider boosts so the main usage card can show both the normal limits and any extra capacity currently available.
+Claude and Codex can expose temporary higher limits, reset credits, or off-peak multipliers. Burnmeter models those as provider boosts so the main usage card can show both the normal limits and any extra capacity currently available.
 
-Claude off-peak periods, Codex model-specific limits, and future provider promotions should all appear in the same boost area when available from the provider or local history.
+Claude off-peak periods and Codex model-specific limits appear in the same boost area when available from the provider or local history.
 
 ## Tech stack
 
