@@ -9,11 +9,13 @@ import { usePromoConfig } from "./hooks/usePromoConfig";
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import type { TrayStatus } from "./lib/constants";
-import type { UsageData } from "./types/usage";
+import type { UpdateInfo, UsageData } from "./types/usage";
 
 export default function App() {
   const { usage, error, isStale, retry } = useUsageData();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
   const config = usePromoConfig();
   const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour, isWeekend, promoEndDate } =
     usePromoStatus(config);
@@ -31,12 +33,35 @@ export default function App() {
     }).catch(() => {});
   }, [promo.isPromoActive, promo.isPeak, usage]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const check = () => {
+      invoke<UpdateInfo>("check_for_update")
+        .then((info) => {
+          if (!cancelled) {
+            setUpdateInfo(info);
+            setUpdateError(null);
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) setUpdateError(String(error));
+        });
+    };
+    check();
+    const timer = window.setInterval(check, 30 * 60 * 1000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
+
   return (
     <div className="app dark">
       <Header
         timezone={timezone}
         utcOffset={utcOffset}
         settingsOpen={settingsOpen}
+        updateAvailable={updateInfo?.available ?? false}
         onSettingsClick={() => setSettingsOpen((open) => !open)}
       />
       {settingsOpen ? (
@@ -46,7 +71,12 @@ export default function App() {
             if (event.target === event.currentTarget) setSettingsOpen(false);
           }}
         >
-          <SettingsPanel usage={usage} onClose={() => setSettingsOpen(false)} />
+          <SettingsPanel
+            usage={usage}
+            updateInfo={updateInfo}
+            updateError={updateError}
+            onClose={() => setSettingsOpen(false)}
+          />
         </div>
       ) : null}
       {promo.isPromoActive ? (

@@ -63,3 +63,12 @@ export interface PromoStatus {
   timeLeftSeconds: number;
   nextTransitionLabel: string;
 }
+
+export interface UpdateInfo {
+  current_version: string;
+  latest_version: string | null;
+  available: boolean;
+  download_url: string | null;
+  release_url: string | null;
+  asset_name: string | null;
+}

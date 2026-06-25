@@ -73,6 +73,29 @@ pub struct UsageResponse {
     pub errors: Vec<UsageError>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UpdateInfo {
+    pub current_version: String,
+    pub latest_version: Option<String>,
+    pub available: bool,
+    pub download_url: Option<String>,
+    pub release_url: Option<String>,
+    pub asset_name: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GithubRelease {
+    tag_name: String,
+    html_url: String,
+    assets: Vec<GithubReleaseAsset>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GithubReleaseAsset {
+    name: String,
+    browser_download_url: String,
+}
+
 async fn fetch_claude_usage(token: &str) -> Result<ProviderUsage, String> {
     let client = reqwest::Client::new();
     let response = client
@@ -191,6 +214,78 @@ pub async fn get_usage() -> Result<UsageResponse, String> {
     }
 
     Ok(UsageResponse { providers, errors })
+}
+
+#[tauri::command]
+pub async fn check_for_update() -> Result<UpdateInfo, String> {
+    let current_version = env!("CARGO_PKG_VERSION").to_string();
+    let release = reqwest::Client::new()
+        .get("https://api.github.com/repos/hacksurvivor/burnmeter/releases/latest")
+        .header("User-Agent", "Burnmeter")
+        .send()
+        .await
+        .map_err(|e| format!("Update check failed: {}", e))?
+        .error_for_status()
+        .map_err(|e| format!("Update check failed: {}", e))?
+        .json::<GithubRelease>()
+        .await
+        .map_err(|e| format!("Update response parse failed: {}", e))?;
+
+    let latest_version = release.tag_name.trim_start_matches('v').to_string();
+    let available = is_newer_version(&latest_version, &current_version);
+    let asset = release
+        .assets
+        .iter()
+        .find(|asset| is_platform_installer(&asset.name));
+
+    Ok(UpdateInfo {
+        current_version,
+        latest_version: Some(latest_version),
+        available,
+        download_url: asset.map(|asset| asset.browser_download_url.clone()),
+        release_url: Some(release.html_url),
+        asset_name: asset.map(|asset| asset.name.clone()),
+    })
+}
+
+fn is_platform_installer(name: &str) -> bool {
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    {
+        return name.ends_with("macOS-Apple-Silicon.dmg");
+    }
+    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+    {
+        return name.ends_with("macOS-Intel.dmg");
+    }
+    #[cfg(target_os = "windows")]
+    {
+        return name.ends_with("Windows-x64-setup.exe");
+    }
+    #[cfg(target_os = "linux")]
+    {
+        return name.ends_with("Linux-x64.AppImage");
+    }
+    #[allow(unreachable_code)]
+    false
+}
+
+fn is_newer_version(latest: &str, current: &str) -> bool {
+    let latest = parse_version(latest);
+    let current = parse_version(current);
+    latest > current
+}
+
+fn parse_version(version: &str) -> Vec<u64> {
+    version
+        .split('.')
+        .map(|part| {
+            part.chars()
+                .take_while(|ch| ch.is_ascii_digit())
+                .collect::<String>()
+                .parse::<u64>()
+                .unwrap_or(0)
+        })
+        .collect()
 }
 
 #[tauri::command]

@@ -83,9 +83,10 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
                     <div>
                       <div className="usage__provider-name">
                         <span>{provider.label}</span>
-                        {provider.plan_type ? <span className="usage__chip">{provider.plan_type}</span> : null}
                       </div>
-                      <div className="usage__provider-sub">{providerSubtitle(provider.provider)}</div>
+                      <div className="usage__provider-sub">
+                        {providerSubtitle(provider.provider, provider.plan_type)}
+                      </div>
                     </div>
                   </div>
                   <span className="usage__provider-toggle" aria-hidden="true" />
@@ -193,12 +194,17 @@ function ProviderMark({ provider, label }: { provider: string; label: string }) 
   );
 }
 
-function providerSubtitle(provider: string): string {
+function providerSubtitle(provider: string, planType?: string | null): string {
   const subtitles: Record<string, string> = {
     claude: "Claude subscription",
     codex: "ChatGPT subscription",
   };
-  return subtitles[provider] ?? "LLM subscription";
+  const subtitle = subtitles[provider] ?? "LLM subscription";
+  return planType ? `${subtitle} · ${formatPlanType(planType)}` : subtitle;
+}
+
+function formatPlanType(planType: string): string {
+  return planType.toLowerCase() === "pro" ? "Pro" : planType;
 }
 
 function LimitGauge({ label, pct, resetsAt, provider }: {

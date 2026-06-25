@@ -1,6 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { invoke } from "@tauri-apps/api/core";
-import type { UsageData, UsageError } from "../types/usage";
+import type { UpdateInfo, UsageData, UsageError } from "../types/usage";
 import {
   providerErrorDetail,
   providerErrorState,
@@ -41,10 +41,12 @@ export const PROVIDERS: ProviderConfig[] = [
 
 interface Props {
   usage: UsageData | null;
+  updateInfo: UpdateInfo | null;
+  updateError: string | null;
   onClose: () => void;
 }
 
-export function SettingsPanel({ usage, onClose }: Props) {
+export function SettingsPanel({ usage, updateInfo, updateError, onClose }: Props) {
   const connected = new Map(
     usage?.providers.map((provider) => [provider.provider, provider]) ?? [],
   );
@@ -65,6 +67,8 @@ export function SettingsPanel({ usage, onClose }: Props) {
         </button>
       </div>
 
+      <UpdateRow updateInfo={updateInfo} updateError={updateError} />
+
       <div className="settings__list">
         {PROVIDERS.map((provider) => (
           <ProviderRow
@@ -77,6 +81,46 @@ export function SettingsPanel({ usage, onClose }: Props) {
         ))}
       </div>
     </aside>
+  );
+}
+
+function UpdateRow({
+  updateInfo,
+  updateError,
+}: {
+  updateInfo: UpdateInfo | null;
+  updateError: string | null;
+}) {
+  const targetUrl = updateInfo?.download_url ?? updateInfo?.release_url ?? "https://github.com/hacksurvivor/burnmeter/releases/latest";
+  const status = updateInfo
+    ? updateInfo.available
+      ? `v${updateInfo.latest_version} available`
+      : `v${updateInfo.current_version} installed`
+    : updateError
+    ? "Update check failed"
+    : "Checking for updates";
+  const detail = updateInfo?.available
+    ? updateInfo.asset_name ?? "Installer ready"
+    : updateInfo
+    ? "Burnmeter is up to date"
+    : updateError ?? "Looking for the latest release";
+
+  return (
+    <div className={`settings__update${updateInfo?.available ? " settings__update--available" : ""}`}>
+      <div>
+        <div className="settings__update-title">Updates</div>
+        <div className="settings__update-status">{status}</div>
+        <div className="settings__update-detail">{detail}</div>
+      </div>
+      <button
+        className="settings__connect-btn settings__update-btn"
+        type="button"
+        disabled={!updateInfo?.available && !updateError}
+        onClick={() => openProviderLogin(targetUrl)}
+      >
+        {updateInfo?.available ? "Update" : updateError ? "Open releases" : "Current"}
+      </button>
+    </div>
   );
 }
 

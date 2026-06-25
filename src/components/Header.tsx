@@ -8,10 +8,11 @@ interface HeaderProps {
   timezone: string;
   utcOffset: string;
   settingsOpen: boolean;
+  updateAvailable: boolean;
   onSettingsClick: () => void;
 }
 
-export function Header({ timezone, utcOffset, settingsOpen, onSettingsClick }: HeaderProps) {
+export function Header({ timezone, utcOffset, settingsOpen, updateAvailable, onSettingsClick }: HeaderProps) {
   const handleSupportClick = () => {
     openUrl(SUPPORT_URL).catch(() => {
       window.open(SUPPORT_URL, "_blank", "noopener,noreferrer");
@@ -36,9 +37,10 @@ export function Header({ timezone, utcOffset, settingsOpen, onSettingsClick }: H
         className={`settings-toggle${settingsOpen ? " settings-toggle--active" : ""}`}
         onClick={onSettingsClick}
         aria-label={settingsOpen ? "Close provider settings" : "Open provider settings"}
-        title="Provider settings"
+        title={updateAvailable ? "Provider settings · update available" : "Provider settings"}
       >
         <SlidersHorizontal aria-hidden="true" />
+        {updateAvailable ? <span className="settings-toggle__dot" aria-hidden="true" /> : null}
       </button>
     </header>
   );

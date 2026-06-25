@@ -105,10 +105,22 @@ jobs:
             fi
           }
 
+          delete_asset() {
+            local name="$1"
+            local id
+
+            id="$(gh api "repos/$REPO/releases/tags/$TAG" \
+              --jq ".assets[] | select(.name == \"$name\") | .id" | head -n 1)"
+
+            if [ -n "$id" ]; then
+              gh api -X DELETE "repos/$REPO/releases/assets/$id" >/dev/null
+            fi
+          }
+
           rename_asset "Burnmeter_${version}_aarch64.dmg" "Burnmeter-${TAG}-macOS-Apple-Silicon.dmg"
           rename_asset "Burnmeter_${version}_x64.dmg" "Burnmeter-${TAG}-macOS-Intel.dmg"
-          rename_asset "Burnmeter_aarch64.app.tar.gz" "Burnmeter-${TAG}-macOS-Apple-Silicon-auto-update.app.tar.gz"
-          rename_asset "Burnmeter_x64.app.tar.gz" "Burnmeter-${TAG}-macOS-Intel-auto-update.app.tar.gz"
+          delete_asset "Burnmeter_aarch64.app.tar.gz"
+          delete_asset "Burnmeter_x64.app.tar.gz"
           rename_asset "Burnmeter_${version}_amd64.AppImage" "Burnmeter-${TAG}-Linux-x64.AppImage"
           rename_asset "Burnmeter_${version}_amd64.deb" "Burnmeter-${TAG}-Linux-x64.deb"
           rename_asset "Burnmeter-${version}-1.x86_64.rpm" "Burnmeter-${TAG}-Linux-x64.rpm"
