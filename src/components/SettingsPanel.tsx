@@ -4,6 +4,7 @@ import {
   providerErrorState,
   providerErrorTitle,
 } from "../lib/usageErrors";
+import { ProviderLogo } from "./ProviderLogo";
 
 type ProviderConfig = {
   id: string;
@@ -43,9 +44,23 @@ const PROVIDERS: ProviderConfig[] = [
     available: false,
   },
   {
-    id: "deepseek",
-    label: "DeepSeek",
-    authLabel: "Subscription",
+    id: "cursor",
+    label: "Cursor",
+    authLabel: "Cursor subscription",
+    command: null,
+    available: false,
+  },
+  {
+    id: "kimi",
+    label: "Kimi K2",
+    authLabel: "Moonshot AI subscription",
+    command: null,
+    available: false,
+  },
+  {
+    id: "glm",
+    label: "GLM",
+    authLabel: "Z.ai subscription",
     command: null,
     available: false,
   },
@@ -121,9 +136,7 @@ function ProviderRow({
     <div className="settings__row">
       <div className="settings__provider">
         <div className="settings__provider-name">
-          <span className={`settings__mark settings__mark--${provider.id}`}>
-            {provider.label.slice(0, 1)}
-          </span>
+          <ProviderLogo label={provider.label} provider={provider.id} />
           <span>{provider.label}</span>
           <span className={`settings__state ${stateClass}`}>{state}</span>
         </div>

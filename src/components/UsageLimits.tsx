@@ -1,7 +1,7 @@
 import { ActivityHeatmap } from "./ActivityHeatmap";
 import { ProviderBoosts } from "./ProviderBoosts";
+import { ProviderLogo } from "./ProviderLogo";
 import { Gauge } from "./charts/gauge";
-import codexLogo from "../assets/codex-logo.svg";
 import { useEffect, useState } from "react";
 import {
   providerErrorDetail,
@@ -188,11 +188,7 @@ function OfflineUsage({
 function ProviderMark({ provider, label }: { provider: string; label: string }) {
   return (
     <span className={`usage__provider-mark usage__provider-mark--${provider}`}>
-      {provider === "codex" ? (
-        <img alt="" aria-hidden="true" className="usage__provider-logo" src={codexLogo} />
-      ) : (
-        label.slice(0, 1)
-      )}
+      <ProviderLogo label={label} provider={provider} />
     </span>
   );
 }

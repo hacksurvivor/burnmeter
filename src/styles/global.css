@@ -316,41 +316,45 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
 }
 .settings__row {
-  padding: 16px;
-  background: rgba(255,255,255,0.02);
+  padding: 16px 0;
+  background: transparent;
   border-top: 1px solid var(--line);
-}
-.settings__row:first-child {
-  border-top: 0;
 }
 .settings__provider-name {
   display: grid;
   grid-template-columns: 44px 1fr auto;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
   color: var(--cream);
   font-size: 15px;
   font-weight: 700;
 }
-.settings__mark {
-  align-self: center;
-  display: grid;
-  place-items: center;
+.provider-logo {
+  display: block;
   width: 42px;
   height: 42px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.08);
+  flex: 0 0 auto;
+  overflow: visible;
+  object-fit: contain;
+}
+.provider-logo--grok,
+.provider-logo--cursor {
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
+}
+.provider-logo--fallback {
+  display: grid;
+  place-items: center;
   color: var(--cream);
   font-family: var(--font);
   font-size: 16px;
+  font-weight: 700;
 }
-.settings__mark--claude { background: rgba(255,127,92,0.22); color: var(--orange); }
-.settings__mark--codex { background: rgba(102,163,255,0.14); color: var(--blue); }
 .settings__state {
   align-self: center;
   color: var(--dim);
@@ -366,7 +370,7 @@ body {
 .settings__provider-meta {
   color: var(--dim);
   font-size: 13px;
-  margin-top: -10px;
+  margin-top: 4px;
   margin-left: 56px;
 }
 .settings__connect {
@@ -591,25 +595,13 @@ body {
   width: 42px;
   height: 42px;
   flex: 0 0 auto;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.08);
+  border-radius: 0;
+  background: transparent;
   color: var(--cream);
   font-family: var(--font);
   font-weight: 700;
   font-size: 15px;
-  border: 1px solid var(--line);
-}
-.usage__provider-mark--claude { background: rgba(255,127,92,0.2); color: var(--orange); }
-.usage__provider-mark--codex {
-  background: transparent;
-  border-color: transparent;
-  color: var(--blue);
-  overflow: hidden;
-}
-.usage__provider-logo {
-  width: 42px;
-  height: 42px;
-  display: block;
+  border: 0;
 }
 .usage__provider-name {
   display: flex;
@@ -774,7 +766,7 @@ body {
   border-radius: 10px;
   font-size: 13px;
 }
-.usage__provider--collapsed .usage__provider-logo {
+.usage__provider--collapsed .provider-logo {
   width: 34px;
   height: 34px;
 }
