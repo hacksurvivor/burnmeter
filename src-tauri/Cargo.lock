@@ -511,7 +511,7 @@ dependencies = [
 
 [[package]]
 name = "claude-x2-tracker"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "aes",
  "base64 0.22.1",
