@@ -6,9 +6,9 @@ export interface UsageData {
 export interface ProviderUsage {
   provider: string;
   label: string;
-  five_hour_pct: number;
+  five_hour_pct: number | null;
   five_hour_resets_at: string | null;
-  seven_day_pct: number;
+  seven_day_pct: number | null;
   seven_day_resets_at: string | null;
   extra_usage_enabled: boolean;
   plan_type: string | null;

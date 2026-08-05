@@ -7,6 +7,11 @@ import {
   providerErrorTitle,
 } from "../lib/usageErrors";
 import { ProviderLogo } from "./ProviderLogo";
+import {
+  MENU_BAR_ROTATION_INTERVALS,
+  type MenuBarProvider,
+  type MenuBarRotationMinutes,
+} from "../App";
 
 export type ProviderConfig = {
   id: string;
@@ -45,8 +50,12 @@ interface Props {
   updateError: string | null;
   launchAtLogin: boolean | null;
   launchSettingsError: string | null;
+  menuBarProvider: MenuBarProvider;
+  menuBarRotationMinutes: MenuBarRotationMinutes;
   openWhenProviderStarts: boolean;
   onLaunchAtLoginChange: (enabled: boolean) => Promise<void>;
+  onMenuBarProviderChange: (provider: MenuBarProvider) => void;
+  onMenuBarRotationMinutesChange: (minutes: MenuBarRotationMinutes) => void;
   onOpenWhenProviderStartsChange: (enabled: boolean) => void;
   onClose: () => void;
 }
@@ -57,8 +66,12 @@ export function SettingsPanel({
   updateError,
   launchAtLogin,
   launchSettingsError,
+  menuBarProvider,
+  menuBarRotationMinutes,
   openWhenProviderStarts,
   onLaunchAtLoginChange,
+  onMenuBarProviderChange,
+  onMenuBarRotationMinutesChange,
   onOpenWhenProviderStartsChange,
   onClose,
 }: Props) {
@@ -81,6 +94,14 @@ export function SettingsPanel({
           ×
         </button>
       </div>
+
+      <MenuBarProviderPicker
+        connected={connected}
+        value={menuBarProvider}
+        rotationMinutes={menuBarRotationMinutes}
+        onChange={onMenuBarProviderChange}
+        onRotationMinutesChange={onMenuBarRotationMinutesChange}
+      />
 
       <div className="settings__list">
         {PROVIDERS.map((provider) => (
@@ -106,6 +127,83 @@ export function SettingsPanel({
         />
       </div>
     </aside>
+  );
+}
+
+function MenuBarProviderPicker({
+  connected,
+  value,
+  rotationMinutes,
+  onChange,
+  onRotationMinutesChange,
+}: {
+  connected: Map<string, UsageData["providers"][number]>;
+  value: MenuBarProvider;
+  rotationMinutes: MenuBarRotationMinutes;
+  onChange: (provider: MenuBarProvider) => void;
+  onRotationMinutesChange: (minutes: MenuBarRotationMinutes) => void;
+}) {
+  const options: Array<{ id: MenuBarProvider; label: string }> = [
+    { id: "rotate", label: "Rotate" },
+    { id: "claude", label: "Claude" },
+    { id: "codex", label: "Codex" },
+  ];
+
+  return (
+    <section className="settings__menu-provider" aria-label="Menu bar provider">
+      <div className="settings__menu-provider-copy">
+        <span>Menu bar</span>
+        <span>Show one provider at a time in the menu bar.</span>
+      </div>
+      <div className="settings__provider-picker">
+        {options.map((option) => {
+          const disabled = option.id !== "rotate" && !connected.has(option.id);
+          return (
+            <button
+              key={option.id}
+              className="settings__provider-choice"
+              type="button"
+              aria-pressed={value === option.id}
+              disabled={disabled}
+              onClick={() => onChange(option.id)}
+            >
+              {option.id === "rotate" ? (
+                <RotateMark />
+              ) : (
+                <ProviderLogo label={option.label} provider={option.id} />
+              )}
+              <span>{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      {value === "rotate" ? (
+        <div className="settings__rotation-interval" aria-label="Rotation interval">
+          <span>Change every</span>
+          <div className="settings__interval-picker">
+            {MENU_BAR_ROTATION_INTERVALS.map((minutes) => (
+              <button
+                key={minutes}
+                type="button"
+                aria-pressed={rotationMinutes === minutes}
+                onClick={() => onRotationMinutesChange(minutes)}
+              >
+                {minutes}m
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function RotateMark() {
+  return (
+    <svg className="settings__rotate-mark" viewBox="0 0 18 18" aria-hidden="true">
+      <path d="M14.4 6.6A5.8 5.8 0 0 0 4.1 5.1L2.7 6.5m0 0V3.2m0 3.3H6" />
+      <path d="M3.6 11.4a5.8 5.8 0 0 0 10.3 1.5l1.4-1.4m0 0v3.3m0-3.3H12" />
+    </svg>
   );
 }
 

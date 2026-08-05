@@ -29,8 +29,12 @@ describe("provider settings", () => {
         updateError={null}
         launchAtLogin={false}
         launchSettingsError={null}
+        menuBarProvider="rotate"
+        menuBarRotationMinutes={1}
         openWhenProviderStarts={false}
         onLaunchAtLoginChange={() => Promise.resolve()}
+        onMenuBarProviderChange={() => {}}
+        onMenuBarRotationMinutesChange={() => {}}
         onOpenWhenProviderStartsChange={() => {}}
         onClose={() => {}}
       />,
@@ -38,5 +42,66 @@ describe("provider settings", () => {
 
     expect(html.indexOf("Claude")).toBeLessThan(html.indexOf("Updates"));
     expect(html.indexOf("Codex")).toBeLessThan(html.indexOf("Open at login"));
+  });
+
+  it("shows the persisted menu bar provider selection", () => {
+    const html = renderToStaticMarkup(
+      <SettingsPanel
+        usage={{
+          providers: [{
+            provider: "claude",
+            label: "Claude",
+            five_hour_pct: 10,
+            five_hour_resets_at: null,
+            seven_day_pct: 20,
+            seven_day_resets_at: null,
+            extra_usage_enabled: false,
+            plan_type: null,
+            activity: null,
+            boosts: [],
+          }],
+          errors: [],
+        }}
+        updateInfo={null}
+        updateError={null}
+        launchAtLogin={false}
+        launchSettingsError={null}
+        menuBarProvider="claude"
+        menuBarRotationMinutes={5}
+        openWhenProviderStarts={false}
+        onLaunchAtLoginChange={() => Promise.resolve()}
+        onMenuBarProviderChange={() => {}}
+        onMenuBarRotationMinutesChange={() => {}}
+        onOpenWhenProviderStartsChange={() => {}}
+        onClose={() => {}}
+      />,
+    );
+
+    expect(html).toContain("Menu bar");
+    expect(html).toContain('aria-pressed="true"');
+    expect(html).toContain('disabled=""');
+  });
+
+  it("shows persisted rotation interval choices only in Rotate mode", () => {
+    const html = renderToStaticMarkup(
+      <SettingsPanel
+        usage={null}
+        updateInfo={null}
+        updateError={null}
+        launchAtLogin={false}
+        launchSettingsError={null}
+        menuBarProvider="rotate"
+        menuBarRotationMinutes={15}
+        openWhenProviderStarts={false}
+        onLaunchAtLoginChange={() => Promise.resolve()}
+        onMenuBarProviderChange={() => {}}
+        onMenuBarRotationMinutesChange={() => {}}
+        onOpenWhenProviderStartsChange={() => {}}
+        onClose={() => {}}
+      />,
+    );
+
+    expect(html).toContain("Change every");
+    expect(html).toContain(">15m<");
   });
 });

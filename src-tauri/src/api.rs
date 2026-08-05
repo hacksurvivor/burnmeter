@@ -29,9 +29,9 @@ pub struct ApiResponse {
 pub struct ProviderUsage {
     pub provider: String,
     pub label: String,
-    pub five_hour_pct: f64,
+    pub five_hour_pct: Option<f64>,
     pub five_hour_resets_at: Option<String>,
-    pub seven_day_pct: f64,
+    pub seven_day_pct: Option<f64>,
     pub seven_day_resets_at: Option<String>,
     pub extra_usage_enabled: bool,
     pub plan_type: Option<String>,
@@ -133,17 +133,9 @@ async fn fetch_claude_usage(token: &str) -> Result<ProviderUsage, String> {
     Ok(ProviderUsage {
         provider: "claude".to_string(),
         label: "Claude".to_string(),
-        five_hour_pct: api
-            .five_hour
-            .as_ref()
-            .and_then(|w| w.utilization)
-            .unwrap_or(0.0),
+        five_hour_pct: api.five_hour.as_ref().and_then(|w| w.utilization),
         five_hour_resets_at: api.five_hour.and_then(|w| w.resets_at),
-        seven_day_pct: api
-            .seven_day
-            .as_ref()
-            .and_then(|w| w.utilization)
-            .unwrap_or(0.0),
+        seven_day_pct: api.seven_day.as_ref().and_then(|w| w.utilization),
         seven_day_resets_at: api.seven_day.and_then(|w| w.resets_at),
         extra_usage_enabled,
         plan_type: None,

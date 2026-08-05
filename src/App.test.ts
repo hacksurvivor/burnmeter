@@ -19,7 +19,7 @@ function provider(overrides: Partial<UsageData["providers"][number]> = {}): Usag
 }
 
 describe("traySummary", () => {
-  it("uses the lowest 5h remaining value for the menu bar title", () => {
+  it("starts Rotate with the first available provider", () => {
     const usage: UsageData = {
       providers: [
         provider({ provider: "claude", label: "Claude", five_hour_pct: 10, seven_day_pct: 60 }),
@@ -28,15 +28,77 @@ describe("traySummary", () => {
       errors: [],
     };
 
-    expect(traySummary(usage)?.title).toBe("85%");
+    expect(traySummary(usage)).toEqual({
+      title: "90%",
+      tooltip: "Menu bar: Rotate · Claude\nClaude: 90% 5h · 40% 7d\nCodex: 85% 5h · 70% 7d",
+      provider: "claude",
+    });
   });
 
-  it("does not use the 7d window even when it has less remaining capacity", () => {
+  it("rotates to the next provider by index", () => {
     const usage: UsageData = {
-      providers: [provider({ five_hour_pct: 15, seven_day_pct: 90 })],
+      providers: [
+        provider({ provider: "claude", label: "Claude", five_hour_pct: 10, seven_day_pct: 60 }),
+        provider({ provider: "codex", label: "Codex", five_hour_pct: 15, seven_day_pct: 90 }),
+      ],
       errors: [],
     };
 
-    expect(traySummary(usage)?.title).toBe("85%");
+    expect(traySummary(usage, "rotate", 1)).toEqual({
+      title: "85%",
+      tooltip: "Menu bar: Rotate · Codex\nClaude: 90% 5h · 40% 7d\nCodex: 85% 5h · 10% 7d",
+      provider: "codex",
+    });
+  });
+
+  it("uses the explicitly pinned Claude provider", () => {
+    const usage: UsageData = {
+      providers: [
+        provider({ provider: "claude", label: "Claude", five_hour_pct: 10, seven_day_pct: 60 }),
+        provider({ provider: "codex", label: "Codex", five_hour_pct: 15, seven_day_pct: 30 }),
+      ],
+      errors: [],
+    };
+
+    expect(traySummary(usage, "claude")).toEqual({
+      title: "90%",
+      tooltip: "Menu bar: Claude\nClaude: 90% 5h · 40% 7d\nCodex: 85% 5h · 70% 7d",
+      provider: "claude",
+    });
+  });
+
+  it("does not silently switch when the pinned provider is unavailable", () => {
+    const usage: UsageData = {
+      providers: [provider({ provider: "codex", label: "Codex" })],
+      errors: [{ provider: "claude", label: "Claude", message: "UNAUTHORIZED" }],
+    };
+
+    expect(traySummary(usage, "claude")).toEqual({
+      title: "—",
+      tooltip: "Menu bar: Claude (unavailable)\nCodex: 85% 5h · 60% 7d",
+      provider: "claude",
+    });
+  });
+
+  it("uses the weekly window when a provider no longer has a 5h limit", () => {
+    const usage: UsageData = {
+      providers: [provider({ five_hour_pct: null, seven_day_pct: 75 })],
+      errors: [],
+    };
+
+    expect(traySummary(usage)).toEqual({
+      title: "25%",
+      tooltip: "Menu bar: Rotate · Codex\nCodex: 25% 7d",
+      provider: "codex",
+    });
+  });
+
+  it("omits providers whose API reports no usage windows", () => {
+    const usage: UsageData = {
+      providers: [provider({ five_hour_pct: null, seven_day_pct: null })],
+      errors: [],
+    };
+
+    expect(traySummary(usage)).toBeNull();
   });
 });

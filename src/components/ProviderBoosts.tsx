@@ -21,12 +21,32 @@ export function ProviderBoosts({ boosts }: Props) {
 
 function boostMeta(boost: ProviderBoost): string {
   if (boost.windows.length > 0) {
-    return boost.windows.map((window) => formatRemaining(window.used_percent)).join(" · ");
+    return boost.windows
+      .map((window) => `${window.label}: ${formatRemaining(window.used_percent)}`)
+      .join(" · ");
   }
-  return boost.description ?? boost.kind.replace(/_/g, " ");
+
+  const details = [
+    boost.multiplier === null ? null : `${formatMultiplier(boost.multiplier)}× usage`,
+    boost.description,
+    formatEndDate(boost.ends_at),
+  ].filter(Boolean);
+
+  return details.join(" · ") || boost.status || boost.kind.replace(/_/g, " ");
 }
 
 function formatRemaining(usedPercent: number | null): string {
   if (usedPercent === null) return "available";
   return `${Math.max(0, Math.round(100 - usedPercent))}% left`;
+}
+
+function formatMultiplier(multiplier: number): string {
+  return Number.isInteger(multiplier) ? String(multiplier) : multiplier.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+}
+
+function formatEndDate(endsAt: string | null): string | null {
+  if (!endsAt) return null;
+  const date = new Date(endsAt);
+  if (Number.isNaN(date.getTime())) return `until ${endsAt}`;
+  return `until ${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
 }

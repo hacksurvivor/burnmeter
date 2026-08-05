@@ -54,6 +54,7 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
         {usage.providers.map((provider) => {
           const isExpanded = expandedProvider === provider.provider;
           const detailsId = `provider-details-${provider.provider}`;
+          const limitWindows = providerLimitWindows(provider);
           const toggleProvider = () => {
             setExpandedProvider((current) => (current === provider.provider ? null : provider.provider));
           };
@@ -91,20 +92,21 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
                   </div>
                   <span className="usage__provider-toggle" aria-hidden="true" />
                 </div>
-                <div className="usage__limits">
-                  <LimitGauge
-                    label="5h window"
-                    pct={provider.five_hour_pct}
-                    resetsAt={provider.five_hour_resets_at}
-                    provider={provider.provider}
-                  />
-                  <LimitGauge
-                    label="7d window"
-                    pct={provider.seven_day_pct}
-                    resetsAt={provider.seven_day_resets_at}
-                    provider={provider.provider}
-                  />
-                </div>
+                {limitWindows.length > 0 ? (
+                  <div className={`usage__limits${limitWindows.length === 1 ? " usage__limits--single" : ""}`}>
+                    {limitWindows.map((window) => (
+                      <LimitGauge
+                        key={window.label}
+                        label={window.label}
+                        pct={window.pct}
+                        resetsAt={window.resetsAt}
+                        provider={provider.provider}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="usage__limits-empty">Usage window unavailable</div>
+                )}
               </div>
 
               {isExpanded ? (
@@ -127,6 +129,23 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
         })}
       </div>
     </div>
+  );
+}
+
+function providerLimitWindows(provider: UsageData["providers"][number]) {
+  return [
+    {
+      label: "5h window",
+      pct: provider.five_hour_pct,
+      resetsAt: provider.five_hour_resets_at,
+    },
+    {
+      label: "7d window",
+      pct: provider.seven_day_pct,
+      resetsAt: provider.seven_day_resets_at,
+    },
+  ].filter((window): window is { label: string; pct: number; resetsAt: string | null } =>
+    typeof window.pct === "number" && Number.isFinite(window.pct),
   );
 }
 

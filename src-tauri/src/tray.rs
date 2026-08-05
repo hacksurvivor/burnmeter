@@ -8,10 +8,9 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
     let quit = MenuItem::with_id(app, "quit", "Quit Burnmeter", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&quit])?;
 
-    let transparent: &[u8] = &[0, 0, 0, 0];
-    let icon = tauri::image::Image::new(transparent, 1, 1);
+    let icon = tauri::include_image!("icons/tray-claude.png");
 
-    let mut builder = TrayIconBuilder::with_id("main")
+    let builder = TrayIconBuilder::with_id("main")
         .icon(icon)
         .title("LLM")
         .tooltip("Burnmeter")
@@ -42,12 +41,6 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
             }
         });
 
-    // macOS template icon rendering
-    #[cfg(target_os = "macos")]
-    {
-        builder = builder.icon_as_template(true);
-    }
-
     let tray = builder.build(app)?;
     Ok(tray)
 }
@@ -72,6 +65,7 @@ pub fn update_tray_status(
     status: String,
     summary: Option<String>,
     tooltip: Option<String>,
+    icon_provider: Option<String>,
 ) -> Result<(), String> {
     let title = summary
         .map(|value| value.trim().to_string())
@@ -91,9 +85,20 @@ pub fn update_tray_status(
         .unwrap_or_else(|| format!("Burnmeter\n{}", status_label));
 
     if let Some(tray) = app.tray_by_id("main") {
+        if let Some(icon) = icon_provider.as_deref().and_then(provider_icon) {
+            tray.set_icon(Some(icon)).map_err(|e| e.to_string())?;
+        }
         tray.set_title(Some(&title)).map_err(|e| e.to_string())?;
         tray.set_tooltip(Some(&tooltip))
             .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+fn provider_icon(provider: &str) -> Option<tauri::image::Image<'static>> {
+    match provider {
+        "claude" => Some(tauri::include_image!("icons/tray-claude.png")),
+        "codex" => Some(tauri::include_image!("icons/tray-codex.png")),
+        _ => None,
+    }
 }

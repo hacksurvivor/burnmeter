@@ -149,18 +149,15 @@ async fn fetch_usage(auth: &CodexAuth) -> Result<ProviderUsage, String> {
         .flatten()
         .or_else(crate::activity::codex_activity);
     let boosts = codex_boosts(&payload);
-    let windows = payload.rate_limit.unwrap_or(CodexRateLimitDetails {
-        primary_window: None,
-        secondary_window: None,
-    });
+    let (five_hour_window, seven_day_window) = codex_usage_windows(payload.rate_limit.as_ref());
 
     Ok(ProviderUsage {
         provider: "codex".to_string(),
         label: "Codex".to_string(),
-        five_hour_pct: used_percent(windows.primary_window.as_ref()),
-        five_hour_resets_at: reset_time(windows.primary_window.as_ref()),
-        seven_day_pct: used_percent(windows.secondary_window.as_ref()),
-        seven_day_resets_at: reset_time(windows.secondary_window.as_ref()),
+        five_hour_pct: used_percent(five_hour_window),
+        five_hour_resets_at: reset_time(five_hour_window),
+        seven_day_pct: used_percent(seven_day_window),
+        seven_day_resets_at: reset_time(seven_day_window),
         extra_usage_enabled: false,
         plan_type: payload.plan_type,
         activity,
@@ -238,15 +235,29 @@ fn profile_activity(payload: &CodexProfileResponse) -> Option<ActivitySummary> {
 fn codex_boosts(payload: &CodexUsagePayload) -> Vec<ProviderBoost> {
     let mut boosts = Vec::new();
 
-    if payload.promo.as_ref().is_some_and(|promo| !promo.is_null()) {
+    if promo_is_active(payload.promo.as_ref()) {
         boosts.push(ProviderBoost {
             id: "codex-promo".to_string(),
             label: promo_label(payload.promo.as_ref()).unwrap_or_else(|| "Codex promo".to_string()),
             kind: "promo".to_string(),
-            status: "active".to_string(),
+            status: promo_string(payload.promo.as_ref(), &["status"])
+                .unwrap_or_else(|| "active".to_string()),
             multiplier: promo_multiplier(payload.promo.as_ref()),
-            starts_at: promo_string(payload.promo.as_ref(), &["starts_at", "start_at", "start"]),
-            ends_at: promo_string(payload.promo.as_ref(), &["ends_at", "end_at", "end"]),
+            starts_at: promo_time(
+                payload.promo.as_ref(),
+                &["starts_at", "start_at", "startsAt", "start"],
+            ),
+            ends_at: promo_time(
+                payload.promo.as_ref(),
+                &[
+                    "ends_at",
+                    "end_at",
+                    "endsAt",
+                    "expires_at",
+                    "expires",
+                    "end",
+                ],
+            ),
             description: promo_string(
                 payload.promo.as_ref(),
                 &["description", "subtitle", "message"],
@@ -311,19 +322,86 @@ fn codex_boosts(payload: &CodexUsagePayload) -> Vec<ProviderBoost> {
 
 fn boost_windows(rate_limit: &CodexRateLimitDetails) -> Vec<ProviderBoostWindow> {
     [
-        ("5h window", rate_limit.primary_window.as_ref()),
-        ("7d window", rate_limit.secondary_window.as_ref()),
+        rate_limit.primary_window.as_ref(),
+        rate_limit.secondary_window.as_ref(),
     ]
     .into_iter()
-    .filter_map(|(label, window)| {
-        window.map(|window| ProviderBoostWindow {
-            label: label.to_string(),
-            used_percent: window.used_percent,
-            resets_at: reset_time(Some(window)),
-            limit_window_seconds: window.limit_window_seconds,
-        })
+    .flatten()
+    .map(|window| ProviderBoostWindow {
+        label: window_label(window),
+        used_percent: window.used_percent,
+        resets_at: reset_time(Some(window)),
+        limit_window_seconds: window.limit_window_seconds,
     })
     .collect()
+}
+
+fn codex_usage_windows(
+    rate_limit: Option<&CodexRateLimitDetails>,
+) -> (Option<&CodexRateLimitWindow>, Option<&CodexRateLimitWindow>) {
+    let Some(rate_limit) = rate_limit else {
+        return (None, None);
+    };
+
+    let mut five_hour = None;
+    let mut seven_day = None;
+    for (index, window) in [
+        rate_limit.primary_window.as_ref(),
+        rate_limit.secondary_window.as_ref(),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let Some(window) = window else { continue };
+        match window.limit_window_seconds {
+            Some(seconds) if seconds >= 24 * 60 * 60 => {
+                seven_day.get_or_insert(window);
+            }
+            Some(_) => {
+                five_hour.get_or_insert(window);
+            }
+            None if index == 0 => {
+                five_hour.get_or_insert(window);
+            }
+            None => {
+                seven_day.get_or_insert(window);
+            }
+        }
+    }
+
+    (five_hour, seven_day)
+}
+
+fn window_label(window: &CodexRateLimitWindow) -> String {
+    match window.limit_window_seconds {
+        Some(seconds) if seconds % 604_800 == 0 => format!("{}d window", seconds / 86_400),
+        Some(seconds) if seconds % 3_600 == 0 => format!("{}h window", seconds / 3_600),
+        Some(seconds) => format!("{}m window", seconds / 60),
+        None => "Usage window".to_string(),
+    }
+}
+
+fn promo_is_active(promo: Option<&serde_json::Value>) -> bool {
+    let Some(promo) = promo else { return false };
+    let Some(object) = promo.as_object() else {
+        return false;
+    };
+    if object.is_empty() {
+        return false;
+    }
+
+    for key in ["active", "is_active", "enabled", "is_enabled"] {
+        if object.get(key).and_then(serde_json::Value::as_bool) == Some(false) {
+            return false;
+        }
+    }
+
+    !promo_string(Some(promo), &["status"]).is_some_and(|status| {
+        matches!(
+            status.to_ascii_lowercase().as_str(),
+            "inactive" | "disabled" | "expired" | "ended"
+        )
+    })
 }
 
 fn promo_label(promo: Option<&serde_json::Value>) -> Option<String> {
@@ -332,9 +410,26 @@ fn promo_label(promo: Option<&serde_json::Value>) -> Option<String> {
 
 fn promo_multiplier(promo: Option<&serde_json::Value>) -> Option<f64> {
     let promo = promo?;
-    ["multiplier", "boost_multiplier", "usage_multiplier"]
-        .into_iter()
-        .find_map(|key| promo.get(key).and_then(serde_json::Value::as_f64))
+    [
+        "multiplier",
+        "boost_multiplier",
+        "usage_multiplier",
+        "limit_multiplier",
+        "rate_limit_multiplier",
+    ]
+    .into_iter()
+    .find_map(|key| {
+        let value = promo.get(key)?;
+        value.as_f64().or_else(|| {
+            value.as_str().and_then(|text| {
+                text.trim()
+                    .trim_end_matches(|character| character == 'x' || character == '×')
+                    .trim()
+                    .parse()
+                    .ok()
+            })
+        })
+    })
 }
 
 fn promo_string(promo: Option<&serde_json::Value>, keys: &[&str]) -> Option<String> {
@@ -345,8 +440,25 @@ fn promo_string(promo: Option<&serde_json::Value>, keys: &[&str]) -> Option<Stri
         .map(ToString::to_string)
 }
 
-fn used_percent(window: Option<&CodexRateLimitWindow>) -> f64 {
-    window.and_then(|w| w.used_percent).unwrap_or(0.0)
+fn promo_time(promo: Option<&serde_json::Value>, keys: &[&str]) -> Option<String> {
+    let promo = promo?;
+    keys.iter().find_map(|key| {
+        let value = promo.get(*key)?;
+        if let Some(timestamp) = value.as_i64() {
+            return Utc
+                .timestamp_opt(timestamp, 0)
+                .single()
+                .map(|date| date.to_rfc3339());
+        }
+        value
+            .as_str()
+            .filter(|text| !text.trim().is_empty())
+            .map(ToString::to_string)
+    })
+}
+
+fn used_percent(window: Option<&CodexRateLimitWindow>) -> Option<f64> {
+    window.and_then(|w| w.used_percent)
 }
 
 fn reset_time(window: Option<&CodexRateLimitWindow>) -> Option<String> {
@@ -359,13 +471,15 @@ fn reset_time(window: Option<&CodexRateLimitWindow>) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::{
-        profile_activity, reset_time, used_percent, CodexProfileResponse, CodexProfileStats,
+        codex_usage_windows, profile_activity, promo_is_active, promo_multiplier, promo_time,
+        reset_time, used_percent, CodexProfileResponse, CodexProfileStats, CodexRateLimitDetails,
         CodexRateLimitWindow, CodexUsageBucket,
     };
+    use serde_json::json;
 
     #[test]
-    fn maps_missing_codex_window_to_zero_usage() {
-        assert_eq!(used_percent(None), 0.0);
+    fn keeps_missing_codex_window_absent() {
+        assert_eq!(used_percent(None), None);
         assert_eq!(reset_time(None), None);
     }
 
@@ -377,9 +491,53 @@ mod tests {
             reset_at: Some(1_735_689_720),
         };
 
-        assert_eq!(used_percent(Some(&window)), 42.0);
+        assert_eq!(used_percent(Some(&window)), Some(42.0));
         assert_eq!(
             reset_time(Some(&window)).as_deref(),
+            Some("2025-01-01T00:02:00+00:00")
+        );
+    }
+
+    #[test]
+    fn recognizes_a_weekly_only_primary_window() {
+        let weekly = CodexRateLimitWindow {
+            used_percent: Some(75.0),
+            limit_window_seconds: Some(604_800),
+            reset_at: Some(1_735_689_720),
+        };
+        let limits = CodexRateLimitDetails {
+            primary_window: Some(weekly),
+            secondary_window: None,
+        };
+
+        let (five_hour, seven_day) = codex_usage_windows(Some(&limits));
+        assert!(five_hour.is_none());
+        assert_eq!(used_percent(seven_day), Some(75.0));
+    }
+
+    #[test]
+    fn recognizes_active_and_inactive_promotions() {
+        assert!(promo_is_active(Some(&json!({
+            "is_active": true,
+            "usage_multiplier": "2x"
+        }))));
+        assert!(!promo_is_active(Some(&json!({
+            "active": false,
+            "usage_multiplier": 2
+        }))));
+        assert!(!promo_is_active(Some(&serde_json::Value::Null)));
+    }
+
+    #[test]
+    fn maps_promotion_multiplier_and_unix_expiry() {
+        let promo = json!({
+            "rate_limit_multiplier": "0.5×",
+            "expires_at": 1_735_689_720
+        });
+
+        assert_eq!(promo_multiplier(Some(&promo)), Some(0.5));
+        assert_eq!(
+            promo_time(Some(&promo), &["expires_at"]).as_deref(),
             Some("2025-01-01T00:02:00+00:00")
         );
     }
