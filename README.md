@@ -30,6 +30,7 @@ Open the [latest release](https://github.com/hacksurvivor/burnmeter/releases/lat
 | macOS Apple Silicon (M1/M2/M3/M4) | `Burnmeter-...-macOS-Apple-Silicon.dmg` |
 | macOS Intel | `Burnmeter-...-macOS-Intel.dmg` |
 | Windows x64 | `Burnmeter-...-Windows-x64-setup.exe` |
+| Windows x64 MSI | `Burnmeter-...-Windows-x64.msi` |
 | Linux x64 AppImage | `Burnmeter-...-Linux-x64.AppImage` |
 | Linux x64 Debian/Ubuntu | `Burnmeter-...-Linux-x64.deb` |
 | Linux x64 Fedora/RHEL | `Burnmeter-...-Linux-x64.rpm` |
