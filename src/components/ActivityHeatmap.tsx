@@ -41,7 +41,7 @@ export function ActivityHeatmap({ activity, provider }: Props) {
           </span>
           <span>
             <strong>{formatDuration(activity.longest_task_seconds)}</strong>
-            longest task
+            {provider === "codex" ? "longest task" : "longest session"}
           </span>
           <span>
             <strong>{activity.longest_streak_days}d</strong>
@@ -52,7 +52,7 @@ export function ActivityHeatmap({ activity, provider }: Props) {
 
       <div className="activity__head">
         <span>Token activity</span>
-        <span>{activity.source}</span>
+        <span title={`Source: ${activity.source}`}>Last {HEATMAP_WEEKS} weeks</span>
       </div>
 
       <HeatmapInteractionProvider>
@@ -65,7 +65,7 @@ export function ActivityHeatmap({ activity, provider }: Props) {
               gap={2}
               layout="fluid"
               levelStyles={HEATMAP_LEVEL_STYLES}
-              margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
+              margin={{ top: 18, right: 0, bottom: 0, left: 0 }}
             >
               <HeatmapCells cornerRadius={3} fadedOpacity={1} />
               <HeatmapXAxis className="activity__axis-label" />

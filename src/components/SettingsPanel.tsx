@@ -1,5 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { invoke } from "@tauri-apps/api/core";
+import { Heart } from "lucide-react";
 import type { UpdateInfo, UsageData, UsageError } from "../types/usage";
 import {
   providerErrorDetail,
@@ -12,6 +13,8 @@ import {
   type MenuBarProvider,
   type MenuBarRotationMinutes,
 } from "../App";
+
+const SUPPORT_URL = "https://github.com/sponsors/hacksurvivor";
 
 export type ProviderConfig = {
   id: string;
@@ -27,7 +30,7 @@ export const PROVIDERS: ProviderConfig[] = [
   {
     id: "claude",
     label: "Claude",
-    authLabel: "OAuth subscription",
+    authLabel: "Claude subscription",
     command: "claude login",
     connectUrl: null,
     actionLabel: "Login",
@@ -83,13 +86,9 @@ export function SettingsPanel({
   );
 
   return (
-    <aside className="settings" role="dialog" aria-label="Provider settings">
-      <div className="settings__grabber" aria-hidden="true" />
+    <aside className="settings" role="dialog" aria-label="Settings">
       <div className="settings__head">
-        <div>
-          <div className="settings__title">Providers</div>
-          <div className="settings__sub">OAuth and subscription accounts</div>
-        </div>
+        <div className="settings__title">Settings</div>
         <button className="settings__close" onClick={onClose} aria-label="Close settings">
           ×
         </button>
@@ -125,6 +124,11 @@ export function SettingsPanel({
           onLaunchAtLoginChange={onLaunchAtLoginChange}
           onOpenWhenProviderStartsChange={onOpenWhenProviderStartsChange}
         />
+
+        <button className="settings__support" type="button" onClick={() => openProviderLogin(SUPPORT_URL)}>
+          <Heart aria-hidden="true" />
+          <span>Support Burnmeter</span>
+        </button>
       </div>
     </aside>
   );
@@ -286,31 +290,33 @@ function UpdateRow({
   const status = updateInfo
     ? updateInfo.available
       ? `v${updateInfo.latest_version} available`
-      : `v${updateInfo.current_version} installed`
+      : `v${updateInfo.current_version} · Up to date`
     : updateError
     ? "Update check failed"
-    : "Checking for updates";
+    : "Checking for updates…";
   const detail = updateInfo?.available
-    ? updateInfo.asset_name ?? "Installer ready"
+    ? `You have v${updateInfo.current_version}`
     : updateInfo
-    ? "Burnmeter is up to date"
-    : updateError ?? "Looking for the latest release";
+    ? null
+    : updateError;
+  const action = updateInfo?.available ? "Update" : updateError ? "Open releases" : null;
 
   return (
     <div className={`settings__update${updateInfo?.available ? " settings__update--available" : ""}`}>
       <div>
         <div className="settings__update-title">Updates</div>
         <div className="settings__update-status">{status}</div>
-        <div className="settings__update-detail">{detail}</div>
+        {detail ? <div className="settings__update-detail" title={detail}>{detail}</div> : null}
       </div>
-      <button
-        className="settings__connect-btn settings__update-btn"
-        type="button"
-        disabled={!updateInfo?.available && !updateError}
-        onClick={() => openProviderLogin(targetUrl)}
-      >
-        {updateInfo?.available ? "Update" : updateError ? "Open releases" : "Current"}
-      </button>
+      {action ? (
+        <button
+          className="settings__connect-btn settings__update-btn"
+          type="button"
+          onClick={() => openProviderLogin(targetUrl)}
+        >
+          {action}
+        </button>
+      ) : null}
     </div>
   );
 }

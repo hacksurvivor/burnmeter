@@ -7,9 +7,9 @@ import { useUsageData } from "./hooks/useUsageData";
 import { usePromoStatus } from "./hooks/usePromoStatus";
 import { usePromoConfig } from "./hooks/usePromoConfig";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { LogicalSize, getCurrentWindow } from "@tauri-apps/api/window";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { TrayStatus } from "./lib/constants";
 import type { UpdateInfo, UsageData } from "./types/usage";
 
@@ -17,6 +17,9 @@ const OPEN_ON_PROVIDER_KEY = "burnmeter.openWhenProviderStarts";
 const MENU_BAR_PROVIDER_KEY = "burnmeter.menuBarProvider";
 const MENU_BAR_ROTATION_INTERVAL_KEY = "burnmeter.menuBarRotationMinutes";
 export const MENU_BAR_ROTATION_INTERVALS = [1, 5, 15, 30] as const;
+const WINDOW_WIDTH = 380;
+const MIN_WINDOW_HEIGHT = 240;
+const MAX_WINDOW_HEIGHT = 600;
 
 export type MenuBarProvider = "rotate" | "claude" | "codex";
 export type MenuBarRotationMinutes = (typeof MENU_BAR_ROTATION_INTERVALS)[number];
@@ -42,9 +45,10 @@ export default function App() {
       : 1;
   });
   const [rotationIndex, setRotationIndex] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
   const rotationSignature = usageProviderIds(usage).join(",");
   const config = usePromoConfig();
-  const { promo, timezone, utcOffset, peakStartLocal, peakEndLocal, currentHour, isWeekend, promoEndDate } =
+  const { promo, peakStartLocal, peakEndLocal, currentHour, isWeekend, promoEndDate } =
     usePromoStatus(config);
 
   useEffect(() => {
@@ -154,6 +158,32 @@ export default function App() {
     };
   }, [openWhenProviderStarts]);
 
+  // Fit the popover to its content so it never shows an empty block below the cards.
+  useEffect(() => {
+    const content = contentRef.current;
+    const app = content?.parentElement;
+    if (!content || !app) return;
+
+    const appWindow = getCurrentWindow();
+    let lastHeight = 0;
+    const fit = () => {
+      const style = getComputedStyle(app);
+      const chrome = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + 2;
+      const natural = Math.ceil(content.offsetHeight + chrome);
+      const height = settingsOpen
+        ? MAX_WINDOW_HEIGHT
+        : Math.min(MAX_WINDOW_HEIGHT, Math.max(MIN_WINDOW_HEIGHT, natural));
+      if (height === lastHeight) return;
+      lastHeight = height;
+      appWindow.setSize(new LogicalSize(WINDOW_WIDTH, height)).catch(() => {});
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [settingsOpen]);
+
   const setLaunchAtLoginEnabled = async (enabled: boolean) => {
     setLaunchSettingsError(null);
     try {
@@ -167,13 +197,36 @@ export default function App() {
 
   return (
     <div className="app dark">
-      <Header
-        timezone={timezone}
-        utcOffset={utcOffset}
-        settingsOpen={settingsOpen}
-        updateAvailable={updateInfo?.available ?? false}
-        onSettingsClick={() => setSettingsOpen((open) => !open)}
-      />
+      <div className="app__content" ref={contentRef}>
+        <Header
+          settingsOpen={settingsOpen}
+          updateAvailable={updateInfo?.available ?? false}
+          onSettingsClick={() => setSettingsOpen((open) => !open)}
+        />
+        {promo.isPromoActive ? (
+          <>
+            <PromoTimer
+              promo={promo}
+              peakStartLocal={peakStartLocal}
+              peakEndLocal={peakEndLocal}
+              currentHour={currentHour}
+              isWeekend={isWeekend}
+            />
+            <div className="divider" />
+          </>
+        ) : null}
+        <UsageLimits
+          usage={usage}
+          isStale={isStale}
+          onRetry={retry}
+          onSettingsClick={() => setSettingsOpen(true)}
+        />
+        <QuickInfo
+          isPromoActive={promo.isPromoActive}
+          promoEndDate={promoEndDate}
+          error={error}
+        />
+      </div>
       {settingsOpen ? (
         <div
           className="settings-overlay"
@@ -198,29 +251,6 @@ export default function App() {
           />
         </div>
       ) : null}
-      {promo.isPromoActive ? (
-        <>
-          <PromoTimer
-            promo={promo}
-            peakStartLocal={peakStartLocal}
-            peakEndLocal={peakEndLocal}
-            currentHour={currentHour}
-            isWeekend={isWeekend}
-          />
-          <div className="divider" />
-        </>
-      ) : null}
-      <UsageLimits
-        usage={usage}
-        isStale={isStale}
-        onRetry={retry}
-        onSettingsClick={() => setSettingsOpen(true)}
-      />
-      <QuickInfo
-        isPromoActive={promo.isPromoActive}
-        promoEndDate={promoEndDate}
-        error={error}
-      />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { ActivityHeatmap } from "./ActivityHeatmap";
 import { ProviderBoosts } from "./ProviderBoosts";
 import { ProviderLogo } from "./ProviderLogo";
-import { Gauge } from "./charts/gauge";
 import { useEffect, useState } from "react";
+import { FIVE_HOUR_SECONDS, WEEK_SECONDS, formatDuration, limitPace, type LimitPace } from "../lib/pace";
 import {
   providerErrorDetail,
   providerErrorState,
@@ -17,18 +17,12 @@ interface Props {
   onSettingsClick: () => void;
 }
 
-function fmtReset(isoDate: string | null): string {
-  if (!isoDate) return "unknown";
+function resetText(isoDate: string | null): string | null {
+  if (!isoDate) return null;
   const resetMs = new Date(isoDate).getTime();
-  const nowMs = Date.now();
-  const diffSec = Math.max(0, Math.floor((resetMs - nowMs) / 1000));
-  if (diffSec <= 0) return "now";
-  const d = Math.floor(diffSec / 86400);
-  const h = Math.floor((diffSec % 86400) / 3600);
-  const m = Math.floor((diffSec % 3600) / 60);
-  if (d > 0) return `${d}d ${h}h`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
+  if (!Number.isFinite(resetMs)) return null;
+  const diffSec = (resetMs - Date.now()) / 1000;
+  return diffSec <= 60 ? "Resets now" : `Resets in ${formatDuration(diffSec)}`;
 }
 
 export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props) {
@@ -38,7 +32,7 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
     setExpandedProvider((current) => {
       if (!usage || usage.providers.length === 0) return null;
       if (current && usage.providers.some((provider) => provider.provider === current)) return current;
-      return usage.providers[0]?.provider ?? null;
+      return null;
     });
   }, [usage]);
 
@@ -46,7 +40,6 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
 
   return (
     <div className={isStale ? "stale" : ""}>
-      <div className="usage__head">Usage</div>
       {usage.providers.length === 0 ? (
         <OfflineUsage errors={usage.errors} onRetry={onRetry} onSettingsClick={onSettingsClick} />
       ) : null}
@@ -90,17 +83,17 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
                       </div>
                     </div>
                   </div>
-                  <span className="usage__provider-toggle" aria-hidden="true" />
+                  <span className="usage__provider-toggle" title={isExpanded ? "Hide details" : "Show details"} aria-hidden="true" />
                 </div>
                 {limitWindows.length > 0 ? (
                   <div className={`usage__limits${limitWindows.length === 1 ? " usage__limits--single" : ""}`}>
                     {limitWindows.map((window) => (
-                      <LimitGauge
+                      <LimitMeter
                         key={window.label}
                         label={window.label}
                         pct={window.pct}
                         resetsAt={window.resetsAt}
-                        provider={provider.provider}
+                        windowSeconds={window.windowSeconds}
                       />
                     ))}
                   </div>
@@ -135,16 +128,18 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
 function providerLimitWindows(provider: UsageData["providers"][number]) {
   return [
     {
-      label: "5h window",
+      label: "5-hour",
       pct: provider.five_hour_pct,
       resetsAt: provider.five_hour_resets_at,
+      windowSeconds: FIVE_HOUR_SECONDS,
     },
     {
-      label: "7d window",
+      label: "Weekly",
       pct: provider.seven_day_pct,
       resetsAt: provider.seven_day_resets_at,
+      windowSeconds: WEEK_SECONDS,
     },
-  ].filter((window): window is { label: string; pct: number; resetsAt: string | null } =>
+  ].filter((window): window is { label: string; pct: number; resetsAt: string | null; windowSeconds: number } =>
     typeof window.pct === "number" && Number.isFinite(window.pct),
   );
 }
@@ -226,52 +221,67 @@ function formatPlanType(planType: string): string {
   return planType.toLowerCase() === "pro" ? "Pro" : planType;
 }
 
-function LimitGauge({ label, pct, resetsAt, provider }: {
+function LimitMeter({ label, pct, resetsAt, windowSeconds }: {
   label: string;
   pct: number;
   resetsAt: string | null;
-  provider: string;
+  windowSeconds: number;
 }) {
-  const remaining = Math.max(0, 100 - pct);
-  const activeGradient = gaugeGradient(provider, remaining);
-  const shortLabel = label.split(" ")[0] ?? label;
+  const remaining = Math.round(Math.min(100, Math.max(0, 100 - pct)));
+  const pace = limitPace(pct, resetsAt, windowSeconds);
+  const tone = remaining <= 20 ? "low" : remaining <= 50 ? "mid" : "ok";
+  const paceLabel = pace ? paceText(pace) : null;
+  const reset = resetText(resetsAt);
 
   return (
-    <div className="usage__gauge-card">
-      <div className="usage__card-label">{shortLabel}</div>
-      <div className="usage__gauge-chart" aria-hidden="true">
-        <Gauge
-          activeGradient={activeGradient}
-          centerValue={Math.round(remaining)}
-          defaultLabel="% left"
-          enterStaggerScale={0.55}
-          height={72}
-          inactiveFill="rgba(219,226,234,0.13)"
-          inactiveFillOpacity={1}
-          minWidth={0}
-          notchCornerRadius={2}
-          notchLengthPercent={64}
-          spacing={38}
-          totalNotches={30}
-          useGradient
-          value={remaining}
-          width={96}
-        />
+    <div className={`meter meter--${tone}`}>
+      <div className="meter__top">
+        <span className="meter__label">{label}</span>
+        {pace && paceLabel ? (
+          <span className={`meter__pace meter__pace--${pace.status}`} title={paceTitle(pace)}>
+            {paceLabel}
+          </span>
+        ) : null}
       </div>
-      <div className="usage__gauge-copy">
-        <div className="usage__gauge-inline">
-          <span>{Math.round(remaining)}%</span>
-          <span>left</span>
-        </div>
-        <div className="usage__reset">Resets in {fmtReset(resetsAt)}</div>
+      <div className="meter__value">
+        <span>{remaining}%</span>
+        <span>left</span>
       </div>
+      <div
+        className="meter__bar"
+        role="meter"
+        aria-label={`${label} limit remaining`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={remaining}
+      >
+        <span className="meter__fill" style={{ width: `${remaining}%` }} />
+        {pace && pace.status !== "limit" ? (
+          <span className="meter__marker" style={{ left: `${pace.evenPaceRemainingPct}%` }} />
+        ) : null}
+      </div>
+      {reset ? <div className="meter__reset">{reset}</div> : null}
     </div>
   );
 }
 
-function gaugeGradient(provider: string, remaining: number): readonly [string, string] {
-  if (remaining <= 20) return ["#ff7f5c", "#ef4444"];
-  if (remaining <= 50) return ["#ffb86b", "#ff7f5c"];
-  if (provider === "claude") return ["#ff7f5c", "#8fd16a"];
-  return ["#66a3ff", "#8fd16a"];
+function paceText(pace: LimitPace): string | null {
+  switch (pace.status) {
+    case "limit":
+      return "Limit reached";
+    case "fast":
+      return `Out in ${formatDuration(pace.runsOutInSeconds ?? 0)}`;
+    case "on-pace":
+      return "On pace";
+    case "early":
+      return null;
+  }
+}
+
+function paceTitle(pace: LimitPace): string {
+  if (pace.status === "fast") {
+    return `At this rate you'll run out in ${formatDuration(pace.runsOutInSeconds ?? 0)}, before the reset.`;
+  }
+  if (pace.status === "limit") return "This limit is used up until it resets.";
+  return "At this rate the limit lasts until it resets. The tick marks an even pace.";
 }

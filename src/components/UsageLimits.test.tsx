@@ -33,9 +33,9 @@ describe("UsageLimits", () => {
     });
 
     expect(html).toContain("usage__limits--single");
-    expect(html).toContain(">7d<");
+    expect(html).toContain(">Weekly<");
     expect(html).toContain(">25%<");
-    expect(html).not.toContain(">5h<");
+    expect(html).not.toContain(">5-hour<");
     expect(html).not.toContain("Resets in unknown");
   });
 });

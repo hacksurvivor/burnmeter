@@ -49,6 +49,7 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
+                rect,
                 ..
             } = event
             {
@@ -57,9 +58,9 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
                     if window.is_visible().unwrap_or(false) {
                         let _ = window.hide();
                     } else if !hidden_by_this_click() {
+                        position_window_under_tray(&window, rect);
                         let _ = window.show();
                         let _ = window.set_focus();
-                        position_window_near_tray(&window);
                     }
                 }
             }
@@ -69,18 +70,40 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
     Ok(tray)
 }
 
-fn position_window_near_tray(window: &tauri::WebviewWindow) {
-    if let Ok(monitor) = window.current_monitor() {
-        if let Some(monitor) = monitor {
-            let screen_size = monitor.size();
-            let scale = monitor.scale_factor();
-            let window_width = 380.0;
-            let x = (screen_size.width as f64 / scale) - window_width - 8.0;
-            let y = 28.0;
-            let _ =
-                window.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(x, y)));
-        }
-    }
+const TRAY_GAP: f64 = 6.0;
+const SCREEN_MARGIN: f64 = 8.0;
+
+/// Centers the popover under the clicked tray icon, clamped to the icon's monitor.
+fn position_window_under_tray(window: &tauri::WebviewWindow, tray_rect: tauri::Rect) {
+    let Ok(Some(monitor)) = window.primary_monitor() else {
+        return;
+    };
+    let scale = monitor.scale_factor();
+    let icon_pos = tray_rect.position.to_physical::<f64>(scale);
+    let icon_size = tray_rect.size.to_physical::<f64>(scale);
+    let icon_center_x = icon_pos.x + icon_size.width / 2.0;
+
+    let monitor = window
+        .monitor_from_point(icon_center_x / scale, icon_pos.y / scale)
+        .ok()
+        .flatten()
+        .unwrap_or(monitor);
+    let scale = monitor.scale_factor();
+    let Ok(window_size) = window.outer_size() else {
+        return;
+    };
+
+    let screen_left = monitor.position().x as f64;
+    let screen_right = screen_left + monitor.size().width as f64;
+    let margin = SCREEN_MARGIN * scale;
+    let max_x = (screen_right - window_size.width as f64 - margin).max(screen_left + margin);
+    let x = (icon_center_x - window_size.width as f64 / 2.0).clamp(screen_left + margin, max_x);
+    let y = icon_pos.y + icon_size.height + TRAY_GAP * scale;
+
+    let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
+        x.round() as i32,
+        y.round() as i32,
+    )));
 }
 
 #[tauri::command]
