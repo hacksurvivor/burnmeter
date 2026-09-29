@@ -70,8 +70,7 @@ fn scan_claude_file(path: &Path, acc: &mut ActivityAccumulator) {
         return;
     };
     let reader = BufReader::new(file);
-    let mut first_ts: Option<DateTime<Utc>> = None;
-    let mut last_ts: Option<DateTime<Utc>> = None;
+    let mut timestamps = Vec::new();
 
     for line in reader.lines().map_while(Result::ok) {
         let Ok(value) = serde_json::from_str::<Value>(&line) else {
@@ -80,8 +79,7 @@ fn scan_claude_file(path: &Path, acc: &mut ActivityAccumulator) {
         let Some(timestamp) = timestamp(&value) else {
             continue;
         };
-        first_ts = Some(first_ts.map_or(timestamp, |current| current.min(timestamp)));
-        last_ts = Some(last_ts.map_or(timestamp, |current| current.max(timestamp)));
+        timestamps.push(timestamp);
 
         let usage = value
             .pointer("/message/usage")
@@ -92,7 +90,32 @@ fn scan_claude_file(path: &Path, acc: &mut ActivityAccumulator) {
         }
     }
 
-    update_longest_task(acc, first_ts, last_ts);
+    // A Claude session file can be resumed days later, so its first-to-last span
+    // overstates the work. Count the longest stretch without a long idle gap.
+    let longest = longest_active_run_seconds(&mut timestamps);
+    acc.longest_task_seconds = acc.longest_task_seconds.max(longest);
+}
+
+const IDLE_GAP_SECONDS: i64 = 30 * 60;
+
+fn longest_active_run_seconds(timestamps: &mut [DateTime<Utc>]) -> u64 {
+    timestamps.sort();
+    let Some(&first) = timestamps.first() else {
+        return 0;
+    };
+    let mut run_start = first;
+    let mut previous = first;
+    let mut longest = 0;
+
+    for &timestamp in timestamps.iter() {
+        if (timestamp - previous).num_seconds() > IDLE_GAP_SECONDS {
+            run_start = timestamp;
+        }
+        longest = longest.max((timestamp - run_start).num_seconds());
+        previous = timestamp;
+    }
+
+    longest.max(0) as u64
 }
 
 fn scan_codex_file(path: &Path, acc: &mut ActivityAccumulator) {
@@ -290,8 +313,8 @@ fn streaks(daily_tokens: &BTreeMap<NaiveDate, u64>) -> (u64, u64) {
 
 #[cfg(test)]
 mod tests {
-    use super::{claude_usage_tokens, streaks, token_usage_total};
-    use chrono::NaiveDate;
+    use super::{claude_usage_tokens, longest_active_run_seconds, streaks, token_usage_total};
+    use chrono::{DateTime, NaiveDate, Utc};
     use serde_json::json;
     use std::collections::BTreeMap;
 
@@ -329,5 +352,20 @@ mod tests {
         days.insert(NaiveDate::from_ymd_opt(2026, 1, 4).unwrap(), 1);
 
         assert_eq!(streaks(&days).1, 2);
+    }
+
+    #[test]
+    fn longest_active_run_ignores_idle_gaps() {
+        let at = |raw: &str| DateTime::parse_from_rfc3339(raw).unwrap().with_timezone(&Utc);
+        let mut timestamps = vec![
+            at("2026-01-01T10:00:00Z"),
+            at("2026-01-01T10:25:00Z"),
+            at("2026-01-01T10:50:00Z"),
+            at("2026-01-01T11:00:00Z"),
+            at("2026-01-20T09:00:00Z"),
+            at("2026-01-20T09:10:00Z"),
+        ];
+
+        assert_eq!(longest_active_run_seconds(&mut timestamps), 60 * 60);
     }
 }
