@@ -12,7 +12,7 @@ macOS · Linux · Windows
 
 ---
 
-<img src="docs/screenshots/app-2026-09-29.png" width="380" alt="Burnmeter panel showing Claude and Codex limits with pace markers" />
+<img src="docs/screenshots/app-v0.6.0.png" width="380" alt="Burnmeter panel: a voxel dev mascot next to a burning BURNMETER wordmark, above Claude and Codex limits with pace markers" />
 
 </div>
 
@@ -40,6 +40,7 @@ The macOS `auto-update.app.tar.gz` assets are for updater clients, not normal ma
 ## Features
 
 - Real-time **5-hour** and **weekly** subscription windows for Claude and Codex
+- A wordmark that **catches fire** as you burn through your tightest limit, and a mascot that goes from smug to skeleton: pick the Matchstick, the Burnout dev, or the Wallet, in voxel or 8-bit
 - **Pace check** on every limit: an even-pace marker, plus a warning when you'll run out before the reset
 - Both providers visible at a glance; expand a card for stats and history
 - Provider-specific boost tracking for off-peak promos, reset credits, and higher temporary limits
@@ -78,6 +79,8 @@ pnpm tauri build
 ```
 
 Requires: Rust, Node.js 20+, pnpm.
+
+Mascot frames in `src/assets/mascots/` are rendered from the voxel models in `scripts/mascots/`. After editing a model, regenerate them with `pnpm mascots:render` (needs Google Chrome).
 
 ## Contributing
 
