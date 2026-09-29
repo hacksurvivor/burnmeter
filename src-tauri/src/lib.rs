@@ -24,7 +24,7 @@ pub fn run() {
                 let w = window.clone();
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::Focused(false) = event {
-                        let _ = w.hide();
+                        tray::hide_on_blur(&w);
                     }
                 });
             }

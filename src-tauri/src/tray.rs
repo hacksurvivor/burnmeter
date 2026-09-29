@@ -1,8 +1,32 @@
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
+
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager,
 };
+
+// Clicking the tray icon blurs the popover before the click event arrives, so the
+// blur handler has already hidden it. Remember when that happened so the click
+// closes the popover instead of reopening it.
+static LAST_BLUR_HIDE: Mutex<Option<Instant>> = Mutex::new(None);
+const BLUR_CLICK_WINDOW: Duration = Duration::from_millis(400);
+
+pub fn hide_on_blur(window: &tauri::WebviewWindow) {
+    if window.is_visible().unwrap_or(false) {
+        *LAST_BLUR_HIDE.lock().unwrap() = Some(Instant::now());
+    }
+    let _ = window.hide();
+}
+
+fn hidden_by_this_click() -> bool {
+    LAST_BLUR_HIDE
+        .lock()
+        .unwrap()
+        .take()
+        .is_some_and(|at| at.elapsed() < BLUR_CLICK_WINDOW)
+}
 
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
     let quit = MenuItem::with_id(app, "quit", "Quit Burnmeter", true, None::<&str>)?;
@@ -32,7 +56,7 @@ pub fn create_tray(app: &AppHandle) -> Result<TrayIcon, tauri::Error> {
                 if let Some(window) = app.get_webview_window("main") {
                     if window.is_visible().unwrap_or(false) {
                         let _ = window.hide();
-                    } else {
+                    } else if !hidden_by_this_click() {
                         let _ = window.show();
                         let _ = window.set_focus();
                         position_window_near_tray(&window);
