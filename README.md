@@ -12,7 +12,7 @@ macOS · Linux · Windows
 
 ---
 
-<img src="docs/screenshots/app-compact-2026-06-25.png" width="600" alt="Burnmeter compact provider card screenshot" />
+<img src="docs/screenshots/app-2026-09-29.png" width="380" alt="Burnmeter panel showing Claude and Codex limits with pace markers" />
 
 </div>
 
@@ -39,12 +39,13 @@ The macOS `auto-update.app.tar.gz` assets are for updater clients, not normal ma
 
 ## Features
 
-- Real-time **5-hour** and **7-day** subscription windows for Claude and Codex
-- Collapsible provider cards so multiple subscriptions fit in the same panel
+- Real-time **5-hour** and **weekly** subscription windows for Claude and Codex
+- **Pace check** on every limit: an even-pace marker, plus a warning when you'll run out before the reset
+- Both providers visible at a glance; expand a card for stats and history
 - Provider-specific boost tracking for off-peak promos, reset credits, and higher temporary limits
-- Local token activity heatmaps with lifetime usage, peak day, longest task, and streak stats
+- Token activity heatmaps with lifetime usage, peak day, longest session, and streak stats
 - Settings panel for connected, missing, limited, or offline Claude/Codex accounts
-- Menu bar status summarizing the tightest remaining provider limit
+- Menu bar percentage for Claude, Codex, or both in rotation
 
 ## How it works
 
