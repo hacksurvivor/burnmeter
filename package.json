@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "mascots:render": "node scripts/render-mascots.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

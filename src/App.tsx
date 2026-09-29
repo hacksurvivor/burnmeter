@@ -11,11 +11,15 @@ import { LogicalSize, getCurrentWindow } from "@tauri-apps/api/window";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { useEffect, useRef, useState } from "react";
 import type { TrayStatus } from "./lib/constants";
+import { tightestLimit } from "./lib/limits";
+import { DEFAULT_MASCOT, DEFAULT_MASCOT_STYLE, isMascotId, isMascotStyle, type MascotId, type MascotStyle } from "./lib/mascots";
 import type { UpdateInfo, UsageData } from "./types/usage";
 
 const OPEN_ON_PROVIDER_KEY = "burnmeter.openWhenProviderStarts";
 const MENU_BAR_PROVIDER_KEY = "burnmeter.menuBarProvider";
 const MENU_BAR_ROTATION_INTERVAL_KEY = "burnmeter.menuBarRotationMinutes";
+const MASCOT_KEY = "burnmeter.mascot";
+const MASCOT_STYLE_KEY = "burnmeter.mascotStyle";
 export const MENU_BAR_ROTATION_INTERVALS = [1, 5, 15, 30] as const;
 const WINDOW_WIDTH = 380;
 const MIN_WINDOW_HEIGHT = 240;
@@ -43,6 +47,14 @@ export default function App() {
     return MENU_BAR_ROTATION_INTERVALS.includes(stored as MenuBarRotationMinutes)
       ? (stored as MenuBarRotationMinutes)
       : 1;
+  });
+  const [mascot, setMascot] = useState<MascotId>(() => {
+    const stored = window.localStorage.getItem(MASCOT_KEY);
+    return isMascotId(stored) ? stored : DEFAULT_MASCOT;
+  });
+  const [mascotStyle, setMascotStyle] = useState<MascotStyle>(() => {
+    const stored = window.localStorage.getItem(MASCOT_STYLE_KEY);
+    return isMascotStyle(stored) ? stored : DEFAULT_MASCOT_STYLE;
   });
   const [rotationIndex, setRotationIndex] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -129,11 +141,19 @@ export default function App() {
   }, [menuBarRotationMinutes]);
 
   useEffect(() => {
+    window.localStorage.setItem(MASCOT_KEY, mascot);
+  }, [mascot]);
+
+  useEffect(() => {
+    window.localStorage.setItem(MASCOT_STYLE_KEY, mascotStyle);
+  }, [mascotStyle]);
+
+  useEffect(() => {
     if (!openWhenProviderStarts) return;
 
     let cancelled = false;
-    let providersWereRunning = false;
-    const appWindow = getCurrentWindow();
+    // Unknown until the first poll, so apps already running at launch don't pop the panel open.
+    let providersWereRunning: boolean | null = null;
 
     const poll = () => {
       invoke<string[]>("detect_running_provider_apps")
@@ -141,9 +161,8 @@ export default function App() {
           if (cancelled) return;
 
           const providersRunning = providers.length > 0;
-          if (providersRunning && !providersWereRunning) {
-            await appWindow.show();
-            await appWindow.setFocus();
+          if (providersRunning && providersWereRunning === false) {
+            await invoke("show_panel");
           }
           providersWereRunning = providersRunning;
         })
@@ -199,6 +218,9 @@ export default function App() {
     <div className="app dark">
       <div className="app__content" ref={contentRef}>
         <Header
+          mascot={mascot}
+          mascotStyle={mascotStyle}
+          tightest={tightestLimit(usage)}
           settingsOpen={settingsOpen}
           updateAvailable={updateInfo?.available ?? false}
           onSettingsClick={() => setSettingsOpen((open) => !open)}
@@ -242,6 +264,10 @@ export default function App() {
             launchSettingsError={launchSettingsError}
             menuBarProvider={menuBarProvider}
             menuBarRotationMinutes={menuBarRotationMinutes}
+            mascot={mascot}
+            mascotStyle={mascotStyle}
+            onMascotChange={setMascot}
+            onMascotStyleChange={setMascotStyle}
             openWhenProviderStarts={openWhenProviderStarts}
             onLaunchAtLoginChange={setLaunchAtLoginEnabled}
             onMenuBarProviderChange={setMenuBarProvider}

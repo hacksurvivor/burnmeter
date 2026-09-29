@@ -106,6 +106,20 @@ fn position_window_under_tray(window: &tauri::WebviewWindow, tray_rect: tauri::R
     )));
 }
 
+/// Opens the popover anchored under the tray icon. Async so the tray lookup,
+/// which hops to the main thread, can't block it.
+#[tauri::command]
+pub async fn show_panel(app: AppHandle) {
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+    if let Some(rect) = app.tray_by_id("main").and_then(|tray| tray.rect().ok().flatten()) {
+        position_window_under_tray(&window, rect);
+    }
+    let _ = window.show();
+    let _ = window.set_focus();
+}
+
 #[tauri::command]
 pub fn update_tray_status(
     app: AppHandle,

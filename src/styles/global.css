@@ -17,6 +17,13 @@
   font-weight: 700;
   font-display: swap;
 }
+/* Silkscreen by The Silkscreen Project Authors, SIL Open Font License 1.1 (public/fonts/Silkscreen-OFL.txt) */
+@font-face {
+  font-family: "Silkscreen";
+  src: url("/fonts/Silkscreen-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: block;
+}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; overflow: hidden; background: transparent; }
@@ -70,110 +77,39 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 36px;
+  min-height: 48px;
+  padding-top: 12px;       /* headroom for the wordmark's flames */
 }
-
-.wordmark {
-  position: relative;
-  display: inline-flex;
+.brand {
+  display: flex;
   align-items: center;
-  height: 24px;
-  max-width: 206px;
-  color: transparent;
-  filter:
-    drop-shadow(0 0 5px rgba(255,127,92,0.18))
-    drop-shadow(0 0 12px rgba(255,89,44,0.06));
+  gap: 10px;
+  min-width: 0;
 }
-.wordmark__letters {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 0;
-  font-family: var(--font);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0;
-  text-transform: uppercase;
+.brand__text {
+  min-width: 0;
 }
-.wordmark__letter {
-  position: relative;
-  display: inline-block;
-  min-width: 0.6em;
-  color: #f7f2e9;
-  text-shadow:
-    0 -1px 1px rgba(255,232,145,0.34),
-    0 -3px 6px rgba(255,107,44,0.22),
-    0 1px 0 rgba(255,255,255,0.12);
-  animation: letter-burn 1.15s steps(3, end) infinite;
+.brand__quip {
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--mid-gray);
+  font-family: "Silkscreen", var(--font);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.wordmark__letter::before,
-.wordmark__letter::after {
-  position: absolute;
-  inset: 0;
-  content: attr(data-letter);
-  pointer-events: none;
+.brand__quip--low { color: #ffb35c; }
+.brand__quip--out { color: #ff6b6b; }
+.mascot {
+  display: block;
+  flex: none;
+  width: auto;
+  user-select: none;
 }
-.wordmark__letter::before {
-  color: #ff7f5c;
-  clip-path: polygon(0 0, 100% 0, 100% 32%, 0 22%);
-  opacity: 0.78;
-  text-shadow:
-    -1px -2px 0 rgba(255,210,89,0.62),
-    1px -4px 2px rgba(255,91,37,0.48),
-    0 -7px 5px rgba(255,62,28,0.22);
-  transform: translateY(-1px);
-  animation: letter-flame 0.95s steps(2, end) infinite;
-}
-.wordmark__letter::after {
-  color: rgba(18,22,25,0.36);
-  clip-path: polygon(0 70%, 100% 62%, 100% 100%, 0 100%);
-  mix-blend-mode: multiply;
-  opacity: 0.45;
-}
-.wordmark__letter:nth-child(2n) {
-  animation-delay: -0.32s;
-}
-.wordmark__letter:nth-child(3n) {
-  animation-delay: -0.58s;
-}
-.wordmark__letter:nth-child(2n)::before {
-  animation-delay: -0.22s;
-}
-.wordmark__letter:nth-child(3n)::before {
-  animation-delay: -0.48s;
-}
-
-@keyframes letter-burn {
-  0%, 100% {
-    text-shadow:
-      0 -1px 1px rgba(255,232,145,0.28),
-      -1px -3px 6px rgba(255,107,44,0.2),
-      0 1px 0 rgba(255,255,255,0.1);
-  }
-  50% {
-    text-shadow:
-      0 -1px 1px rgba(255,245,180,0.48),
-      1px -5px 8px rgba(255,107,44,0.32),
-      0 1px 0 rgba(255,255,255,0.12);
-  }
-}
-
-@keyframes letter-flame {
-  0%, 100% {
-    opacity: 0.46;
-    transform: translate(-1px, 0);
-  }
-  50% {
-    opacity: 0.9;
-    transform: translate(1px, -2px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wordmark__letter,
-  .wordmark__letter::before {
-    animation: none;
-  }
+.mascot--pixel {
+  image-rendering: pixelated;
 }
 
 .settings-toggle {
@@ -335,6 +271,44 @@ body {
   stroke-linejoin: round;
   filter: drop-shadow(0 0 5px rgba(255,127,92,0.25));
 }
+.settings__mascot {
+  margin: 0 8px 6px;
+  padding: 14px 0 16px;
+  border-top: 1px solid var(--line);
+}
+.settings__mascot-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+.settings__mascot-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-height: 74px;
+  padding: 10px 6px 8px;
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 9px;
+  background: rgba(255,255,255,0.04);
+  color: var(--mid-gray);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+.settings__mascot-choice:hover {
+  color: var(--cream);
+  border-color: rgba(255,127,92,0.32);
+}
+.settings__mascot-choice[aria-pressed="true"] {
+  color: var(--cream);
+  border-color: rgba(255,127,92,0.48);
+  background: rgba(255,127,92,0.12);
+}
 .settings__rotation-interval {
   display: flex;
   align-items: center;
@@ -344,6 +318,10 @@ body {
   color: var(--mid-gray);
   font-size: 11px;
   font-weight: 600;
+}
+.settings__interval-picker.settings__style-picker {
+  grid-template-columns: repeat(2, 1fr);
+  width: 150px;
 }
 .settings__interval-picker {
   display: grid;
@@ -732,6 +710,11 @@ body {
 }
 
 /* ── Usage ── */
+.usage__loading {
+  padding: 18px 2px;
+  color: var(--dim);
+  font-size: 13px;
+}
 .usage__limits {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

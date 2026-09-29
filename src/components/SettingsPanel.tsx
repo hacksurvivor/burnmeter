@@ -8,6 +8,8 @@ import {
   providerErrorTitle,
 } from "../lib/usageErrors";
 import { ProviderLogo } from "./ProviderLogo";
+import { Mascot } from "./Mascot";
+import { MASCOT_IDS, MASCOT_STYLES, mascotName, mascotStyleName, type MascotId, type MascotStyle } from "../lib/mascots";
 import {
   MENU_BAR_ROTATION_INTERVALS,
   type MenuBarProvider,
@@ -55,6 +57,10 @@ interface Props {
   launchSettingsError: string | null;
   menuBarProvider: MenuBarProvider;
   menuBarRotationMinutes: MenuBarRotationMinutes;
+  mascot: MascotId;
+  mascotStyle: MascotStyle;
+  onMascotChange: (mascot: MascotId) => void;
+  onMascotStyleChange: (style: MascotStyle) => void;
   openWhenProviderStarts: boolean;
   onLaunchAtLoginChange: (enabled: boolean) => Promise<void>;
   onMenuBarProviderChange: (provider: MenuBarProvider) => void;
@@ -71,6 +77,10 @@ export function SettingsPanel({
   launchSettingsError,
   menuBarProvider,
   menuBarRotationMinutes,
+  mascot,
+  mascotStyle,
+  onMascotChange,
+  onMascotStyleChange,
   openWhenProviderStarts,
   onLaunchAtLoginChange,
   onMenuBarProviderChange,
@@ -101,6 +111,8 @@ export function SettingsPanel({
         onChange={onMenuBarProviderChange}
         onRotationMinutesChange={onMenuBarRotationMinutesChange}
       />
+
+      <MascotPicker value={mascot} style={mascotStyle} onChange={onMascotChange} onStyleChange={onMascotStyleChange} />
 
       <div className="settings__list">
         {PROVIDERS.map((provider) => (
@@ -198,6 +210,51 @@ function MenuBarProviderPicker({
           </div>
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function MascotPicker({
+  value,
+  style,
+  onChange,
+  onStyleChange,
+}: {
+  value: MascotId;
+  style: MascotStyle;
+  onChange: (mascot: MascotId) => void;
+  onStyleChange: (style: MascotStyle) => void;
+}) {
+  return (
+    <section className="settings__mascot" aria-label="Mascot">
+      <div className="settings__menu-provider-copy">
+        <span>Mascot</span>
+        <span>Burns down with your tightest limit.</span>
+      </div>
+      <div className="settings__mascot-picker">
+        {MASCOT_IDS.map((id) => (
+          <button
+            key={id}
+            className="settings__mascot-choice"
+            type="button"
+            aria-pressed={value === id}
+            onClick={() => onChange(id)}
+          >
+            <Mascot id={id} mood="plenty" style={style} height={40} animate={false} />
+            <span>{mascotName(id)}</span>
+          </button>
+        ))}
+      </div>
+      <div className="settings__rotation-interval" aria-label="Mascot style">
+        <span>Style</span>
+        <div className="settings__interval-picker settings__style-picker">
+          {MASCOT_STYLES.map((option) => (
+            <button key={option} type="button" aria-pressed={style === option} onClick={() => onStyleChange(option)}>
+              {mascotStyleName(option)}
+            </button>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

@@ -31,6 +31,10 @@ describe("provider settings", () => {
         launchSettingsError={null}
         menuBarProvider="rotate"
         menuBarRotationMinutes={1}
+        mascot="dev"
+        mascotStyle="voxel"
+        onMascotChange={() => {}}
+        onMascotStyleChange={() => {}}
         openWhenProviderStarts={false}
         onLaunchAtLoginChange={() => Promise.resolve()}
         onMenuBarProviderChange={() => {}}
@@ -68,6 +72,10 @@ describe("provider settings", () => {
         launchSettingsError={null}
         menuBarProvider="claude"
         menuBarRotationMinutes={5}
+        mascot="dev"
+        mascotStyle="voxel"
+        onMascotChange={() => {}}
+        onMascotStyleChange={() => {}}
         openWhenProviderStarts={false}
         onLaunchAtLoginChange={() => Promise.resolve()}
         onMenuBarProviderChange={() => {}}
@@ -92,6 +100,10 @@ describe("provider settings", () => {
         launchSettingsError={null}
         menuBarProvider="rotate"
         menuBarRotationMinutes={15}
+        mascot="dev"
+        mascotStyle="voxel"
+        onMascotChange={() => {}}
+        onMascotStyleChange={() => {}}
         openWhenProviderStarts={false}
         onLaunchAtLoginChange={() => Promise.resolve()}
         onMenuBarProviderChange={() => {}}

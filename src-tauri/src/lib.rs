@@ -37,6 +37,7 @@ pub fn run() {
             api::open_provider_login,
             api::detect_running_provider_apps,
             tray::update_tray_status,
+            tray::show_panel,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

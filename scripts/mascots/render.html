@@ -1,0 +1,172 @@
+<!doctype html>
+<!-- Renders every mascot frame (voxel + 8-bit) to cropped PNG data URLs.
+     Driven by scripts/render-mascots.mjs via headless Chrome; output lands in #out as JSON. -->
+<html>
+<head><meta charset="utf-8"><title>Mascot renderer</title></head>
+<body>
+<pre id="out"></pre>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="models.js"></script>
+<script>
+const { W, H, D, build, get, shade, mixc } = VX;
+const IDS = ["match", "dev", "wallet"];
+const MOODS = ["plenty", "low", "out"];
+const FRAMES = [0, 1];
+const VOXEL_HEIGHT = 144;   // 3x a 48px header slot
+
+// ── 8-bit: front view with pixel-art shading ──
+function pixelSprite(m) {
+  const col = [], dep = [], em = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    let z = D - 1; while (z >= 0 && !get(m, x, y, z)) z--;
+    const i = x + W * y;
+    dep[i] = z; col[i] = z >= 0 ? get(m, x, y, z) : null; em[i] = z >= 0 ? m.e[x + W * (y + H * z)] : 0;
+  }
+  const at = (x, y) => (x < 0 || x >= W || y < 0 || y >= H ? -99 : dep[x + W * y]);
+  const out = new Array(W * H).fill(null);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = x + W * y, c = col[i];
+    if (!c) continue;
+    if (em[i]) { out[i] = c; continue; }
+    const d = dep[i];
+    const dl = at(x - 1, y), dr = at(x + 1, y), du = at(x, y + 1), dd = at(x, y - 1);
+    const edge = [dl, dr, du, dd].some((n) => n < 0);
+    const sx = (dr < 0 ? d - 2 : dr) - (dl < 0 ? d - 2 : dl);
+    const sy = (dd < 0 ? d - 2 : dd) - (du < 0 ? d - 2 : du);
+    let light = Math.max(-2, Math.min(2, sx * 0.35 + sy * 0.45));
+    if ([1, 2, 3].some((k) => at(x, y + k) > d + 1) || at(x - 1, y + 1) > d + 2) light -= 0.9;
+    const level = light > 0.55 ? 0.16 : light < -0.55 ? -0.26 : 0;
+    let px = shade(c, level);
+    if (edge) px = shade(mixc(c, "#1a1030", 0.35), -0.45);
+    else if ([dl, dr, du, dd].some((n) => n >= 0 && d - n >= 3)) px = shade(c, -0.32);
+    out[i] = px;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const c = out[x + W * y]; if (!c) continue;
+    ctx.fillStyle = c; ctx.fillRect(x, H - 1 - y, 1, 1);
+  }
+  return canvas;
+}
+
+// ── Voxel: visible faces with baked ambient occlusion ──
+const FACES = [
+  { n: [1, 0, 0], v: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]] },
+  { n: [-1, 0, 0], v: [[0, 0, 1], [0, 1, 1], [0, 1, 0], [0, 0, 0]] },
+  { n: [0, 1, 0], v: [[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]] },
+  { n: [0, -1, 0], v: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]] },
+  { n: [0, 0, 1], v: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]] },
+  { n: [0, 0, -1], v: [[1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 1, 0]] },
+];
+const AO = [0.5, 0.68, 0.84, 1];
+function voxelMesh(m) {
+  const lit = { pos: [], col: [] }, glow = { pos: [], col: [] };
+  const solid = (x, y, z) => (get(m, x, y, z) ? 1 : 0);
+  for (let z = 0; z < D; z++) for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const c = get(m, x, y, z); if (!c) continue;
+    const target = m.e[x + W * (y + H * z)] ? glow : lit;
+    const base = new THREE.Color(c);
+    for (const f of FACES) {
+      const [nx, ny, nz] = f.n;
+      if (solid(x + nx, y + ny, z + nz)) continue;
+      const axis = f.n.findIndex((a) => a !== 0);
+      const others = [0, 1, 2].filter((a) => a !== axis);
+      const shades = f.v.map((corner) => {
+        if (target === glow) return 1;
+        const s = corner.map((v) => v * 2 - 1);
+        const o = [x + nx, y + ny, z + nz];
+        const probe = (keep) => { const p = [...o]; keep.forEach((a) => (p[a] += s[a])); return solid(...p); };
+        const a = probe([others[0]]), b = probe([others[1]]), cc = probe(others);
+        return AO[a && b ? 0 : 3 - (a + b + cc)];
+      });
+      const quad = f.v.map(([vx, vy, vz]) => [x + vx, y + vy, z + vz]);
+      const order = shades[0] + shades[2] > shades[1] + shades[3] ? [0, 1, 2, 0, 2, 3] : [1, 2, 3, 1, 3, 0];
+      for (const k of order) {
+        target.pos.push(...quad[k]);
+        target.col.push(base.r * shades[k], base.g * shades[k], base.b * shades[k]);
+      }
+    }
+  }
+  const group = new THREE.Group();
+  for (const [part, mat] of [[lit, new THREE.MeshLambertMaterial({ vertexColors: true })], [glow, new THREE.MeshBasicMaterial({ vertexColors: true })]]) {
+    if (!part.pos.length) continue;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(part.pos, 3));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(part.col, 3));
+    g.computeVertexNormals();
+    group.add(new THREE.Mesh(g, mat));
+  }
+  return group;
+}
+
+const RW = 720, RH = 880;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(RW, RH);
+const camera = new THREE.OrthographicCamera(-21, 21, 25.7, -25.7, 0.1, 400);
+const center = new THREE.Vector3(W / 2, H / 2 - 1.5, D / 2);
+camera.position.copy(center).add(new THREE.Vector3(55, 42, 95));
+camera.lookAt(center);
+
+function voxelCanvas(m) {
+  const scene = new THREE.Scene();
+  scene.add(new THREE.AmbientLight(0xffffff, 0.58));
+  const sun = new THREE.DirectionalLight(0xfff1dc, 0.78); sun.position.set(-30, 60, 50); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0x9fb4ff, 0.18); fill.position.set(40, 10, -20); scene.add(fill);
+  const mesh = voxelMesh(m);
+  scene.add(mesh);
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(15, 32), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.set(W / 2, -0.02, D / 2); scene.add(shadow);
+  renderer.render(scene, camera);
+  const canvas = document.createElement("canvas");
+  canvas.width = RW; canvas.height = RH;
+  canvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
+  mesh.traverse((o) => o.geometry && o.geometry.dispose());
+  return canvas;
+}
+
+function alphaBounds(canvas) {
+  const { width: w, height: h } = canvas;
+  const data = canvas.getContext("2d").getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (data[(x + w * y) * 4 + 3] > 10) {
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  return { x0, y0, x1, y1 };
+}
+function union(a, b) { return a ? { x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) } : b; }
+function crop(canvas, box, outH, smooth) {
+  const bw = box.x1 - box.x0 + 1, bh = box.y1 - box.y0 + 1;
+  const scale = outH ? outH / bh : 1;
+  const out = document.createElement("canvas");
+  out.width = Math.round(bw * scale); out.height = Math.round(bh * scale);
+  const ctx = out.getContext("2d");
+  ctx.imageSmoothingEnabled = smooth;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(canvas, box.x0, box.y0, bw, bh, 0, 0, out.width, out.height);
+  return out.toDataURL("image/png");
+}
+
+const files = {};
+for (const id of IDS) {
+  const frames = { voxel: [], pixel: [] };
+  let vbox = null, pbox = null;
+  for (const mood of MOODS) for (const frame of FRAMES) {
+    const m = build(id, mood, frame);
+    const v = voxelCanvas(m), p = pixelSprite(m);
+    vbox = union(vbox, alphaBounds(v));
+    pbox = union(pbox, alphaBounds(p));
+    frames.voxel.push({ mood, frame, canvas: v });
+    frames.pixel.push({ mood, frame, canvas: p });
+  }
+  // Pad the voxel box a little so flames and smoke never touch the edge.
+  vbox = { x0: Math.max(0, vbox.x0 - 6), y0: Math.max(0, vbox.y0 - 6), x1: Math.min(RW - 1, vbox.x1 + 6), y1: Math.min(RH - 1, vbox.y1 + 6) };
+  for (const f of frames.voxel) files[`voxel-${id}-${f.mood}-${f.frame}.png`] = crop(f.canvas, vbox, VOXEL_HEIGHT, true);
+  for (const f of frames.pixel) files[`pixel-${id}-${f.mood}-${f.frame}.png`] = crop(f.canvas, pbox, 0, false);
+}
+document.getElementById("out").textContent = JSON.stringify(files);
+</script>
+</body>
+</html>

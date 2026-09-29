@@ -36,7 +36,7 @@ export function UsageLimits({ usage, isStale, onRetry, onSettingsClick }: Props)
     });
   }, [usage]);
 
-  if (!usage) return null;
+  if (!usage) return <div className="usage__loading">Checking your limits…</div>;
 
   return (
     <div className={isStale ? "stale" : ""}>
